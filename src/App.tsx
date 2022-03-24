@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import React, {MouseEventHandler, useEffect, useState} from 'react';
+import { createNoSubstitutionTemplateLiteral, TypeOfTag } from 'typescript';
 import './App.css';
 
 interface mainProp{
@@ -6,30 +7,34 @@ interface mainProp{
   currentState: string;
 }
 
-function Banner(){
+function Banner(props: {onClick:(i:number)=>void}){
   return(
     <div className="Banner">
-      <div className="logo-cnt">abc</div>
+      <div className="logo-cnt">
+        <button onClick={() => props.onClick(0)}>home</button>
+      </div>
       <div className="search-cnt">
         <input type="search"/>
-        <button>szukaj</button>
+        <button onClick={() => props.onClick(1)}>szukaj</button>
       </div>
     </div>
   )
 }
 
-function Navigation(){
+function Navigation(props: {onClick:(i:number)=>void}){
   return(
     <div className="Navigation">
+      <button onClick={() => props.onClick(0)}>home</button>
+      <button onClick={() => props.onClick(2)}>calendar</button>
     </div>
   )
 }
 
-function Header(){
+function Header(props: {onClick:(i:number)=>void}){
   return(
     <div className="Header">
-      <Banner/>
-      <Navigation/>
+      <Banner onClick={(i) => props.onClick(i)}/>
+      <Navigation onClick={(i) => props.onClick(i)}/>
     </div>
   );
 }
@@ -39,18 +44,11 @@ function Home(){
   const[data, setData] = useState([]);
 
   const getTodaySchedule=()=>{
-    fetch("https://api.tvmaze.com/schedule/web?date=2022-03-24",
-   /* {
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      }
-    }*/)
+    fetch("https://api.tvmaze.com/schedule?date=2022-03-24")
     .then(res => {
       return res.json();
     })
     .then(schedule => {
-      console.log(schedule);
       setData(schedule) 
     });
   }
@@ -61,7 +59,7 @@ function Home(){
 
   return(
     <div className="Home">
-      {data && data.length>0 && data.map((item: any)=><p>{item.name} {item.airdate} {item.airtime}</p>)}
+      {data && data.length>0 && data.map((item: any)=><p>{item.show.name} {item.airdate} {item.airtime}</p>)}
     </div>
   )
 }
@@ -105,9 +103,13 @@ function App() {
   const stateList: Array<string> = ["home", "search", "calendar"];
   const [mainState, setMainState] = useState(stateList[0]);
 
+  function handleClick(i: number){
+    setMainState(stateList[i]);
+  }
+
   return (
     <div className="App">
-      <Header/>
+      <Header onClick={i => handleClick(i)}/>
       <Main currentState={mainState} stateList={stateList} />
     </div>
   );
