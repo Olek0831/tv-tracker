@@ -1,3 +1,37 @@
-.App{
+body{
   background: aqua;
+}
+
+.Header{
+  border: 1px solid black;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: 20vh 10vh;
+}
+
+.Banner{
+  border: inherit;
+  grid-column: 1/6;
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-auto-rows: minmax(10vh, auto);
+}
+
+.logo-cnt{
+  grid-column: 1/3;
+  grid-row: 1;
+  border: inherit;
+}
+
+.search-cnt{
+  border: inherit;
+  grid-column: 3/6;
+  grid-row: 1;
+}
+
+.Navigation{
+  border: inherit;
+  grid-column: 1/6;
+  grid-row: 2;
 }
