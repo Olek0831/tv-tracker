@@ -1,17 +1,11 @@
-import React, {MouseEventHandler, useEffect, useState} from 'react';
-import { createNoSubstitutionTemplateLiteral, TypeOfTag } from 'typescript';
+import React, { useEffect, useState} from 'react';
 import './App.css';
-
-interface mainProp{
-  stateList: Array<string>;
-  currentState: string;
-}
 
 function Banner(props: {onClick:(i:number)=>void}){
   return(
     <div className="Banner">
       <div className="logo-cnt">
-        <button onClick={() => props.onClick(0)}>home</button>
+        <button className="logo" onClick={() => props.onClick(0)}>home</button>
       </div>
       <div className="search-cnt">
         <input type="search"/>
@@ -39,17 +33,50 @@ function Header(props: {onClick:(i:number)=>void}){
   );
 }
 
-function Home(){
+function TodaysPremieres(){
 
-  const[data, setData] = useState([]);
+  interface Rating {
+    show: {
+      rating: {
+        average: number;
+      }
+    }
+    airdate: string;
+  }
+
+  const[todaySchedule, setTodaySchedule] = useState<Array<Rating>>([]);
+
+  const today = new Date();
+  let monthRaw = (today.getMonth()+1);
+  let month: string;
+  
+  if (monthRaw < 10){
+    month = monthRaw.toString();
+    month = '0'+month;
+  } else{
+    month = monthRaw.toString();
+  }
+
+  const date = today.getFullYear()+'-'+month+'-'+today.getDate();
 
   const getTodaySchedule=()=>{
-    fetch("https://api.tvmaze.com/schedule?date=2022-03-24")
+    fetch("https://api.tvmaze.com/schedule?date="+date)
     .then(res => {
       return res.json();
     })
     .then(schedule => {
-      setData(schedule) 
+      const scheduleSortedByRating = schedule.sort((a: Rating, b: Rating) => {
+        return b.show.rating.average - a.show.rating.average;
+      });
+
+      let todayShowsByRating: Rating[] = [];
+      
+      scheduleSortedByRating.forEach((element: Rating) => {
+        if (element.show.rating.average > 0 && element.airdate == date){
+          todayShowsByRating.push(element);
+        }
+      });
+      setTodaySchedule(todayShowsByRating.slice(0, 5));
     });
   }
 
@@ -58,10 +85,32 @@ function Home(){
   },[]);
 
   return(
-    <div className="Home">
-      {data && data.length>0 && data.map((item: any)=><p>{item.show.name} {item.airdate} {item.airtime}</p>)}
+    <div className="todays-premieres">
+      {todaySchedule && todaySchedule.length>0 && todaySchedule.map((item: any, i: number)=>{
+        let epClass: string = "today-episode-cnt"+i;
+        return (
+          <div className={epClass}>
+            <img src={item.show.image.medium}/><br/>
+            {item.show.name}<br/>
+            {item.name}<br/>
+            {item.airtime}<br/>
+            {item.show.rating.average}
+          </div>
+        )
+      })}
     </div>
   )
+
+}
+
+function Home(){
+
+    return(
+      <div className="Home">
+        <TodaysPremieres/>
+      </div>
+    )
+
 }
 
 function Search(){
@@ -80,7 +129,7 @@ function Calendar(){
 
 }
 
-function Main(props: mainProp){
+function Main(props: {currentState: string, stateList: Array<string>}){
 
   const currentState = props.currentState;
   const stateList = props.stateList;
