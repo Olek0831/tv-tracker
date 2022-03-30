@@ -1,14 +1,19 @@
 import React, { useEffect, useState} from 'react';
 import './App.css';
 
-function Banner(props: {onClick:(i:number)=>void}){
+function Banner(props: BannerProps){
   return(
     <div className="Banner">
       <div className="logo-cnt">
         <button className="logo" onClick={() => props.onClick(0)}>home</button>
       </div>
-      <div className="search-cnt">
-        <input type="search"/>
+      <div className="search-bar-cnt">
+        <input 
+          type="search" 
+          value={props.searchValue} 
+          onChange={(e) => props.onChange(e)}
+          onKeyDown={(e) => props.onKeyDown(e)}
+        />
         <button onClick={() => props.onClick(1)}>szukaj</button>
       </div>
     </div>
@@ -19,15 +24,16 @@ function Navigation(props: {onClick:(i:number)=>void}){
   return(
     <div className="Navigation">
       <button onClick={() => props.onClick(0)}>home</button>
-      <button onClick={() => props.onClick(2)}>calendar</button>
+      <button onClick={() => props.onClick(2)}>shows</button>
+      <button onClick={() => props.onClick(3)}>calendar</button>
     </div>
   )
 }
 
-function Header(props: {onClick:(i:number)=>void}){
+function Header(props: BannerProps){
   return(
     <div className="Header">
-      <Banner onClick={(i) => props.onClick(i)}/>
+      <Banner onClick={(i) => props.onClick(i)} searchValue={props.searchValue} onChange={(e) => props.onChange(e)} onKeyDown={(e) => props.onKeyDown(e)}/>
       <Navigation onClick={(i) => props.onClick(i)}/>
     </div>
   );
@@ -49,6 +55,8 @@ function TodaysPremieres(){
   const today = new Date();
   let monthRaw = (today.getMonth()+1);
   let month: string;
+  let dayRaw = today.getDate();
+  let day: string;
   
   if (monthRaw < 10){
     month = monthRaw.toString();
@@ -57,7 +65,14 @@ function TodaysPremieres(){
     month = monthRaw.toString();
   }
 
-  const date = today.getFullYear()+'-'+month+'-'+today.getDate();
+  if (dayRaw < 10){
+    day = dayRaw.toString();
+    day = '0'+day;
+  } else{
+    day = dayRaw.toString();
+  }
+
+  const date = today.getFullYear()+'-'+month+'-'+day;
 
   const getTodaySchedule=()=>{
     fetch("https://api.tvmaze.com/schedule?date="+date)
@@ -72,7 +87,7 @@ function TodaysPremieres(){
       let todayShowsByRating: Rating[] = [];
       
       scheduleSortedByRating.forEach((element: Rating) => {
-        if (element.show.rating.average > 0 && element.airdate == date){
+        if (element.show.rating.average > 0 && element.airdate === date){
           todayShowsByRating.push(element);
         }
       });
@@ -87,10 +102,9 @@ function TodaysPremieres(){
   return(
     <div className="todays-premieres">
       {todaySchedule && todaySchedule.length>0 && todaySchedule.map((item: any, i: number)=>{
-        let epClass: string = "today-episode-cnt"+i;
         return (
-          <div className={epClass}>
-            <img src={item.show.image.medium}/><br/>
+          <div className="today-episode-cnt">
+            <img src={item.show.image.medium} alt=""/><br/>
             {item.show.name}<br/>
             {item.name}<br/>
             {item.airtime}<br/>
@@ -103,6 +117,8 @@ function TodaysPremieres(){
 
 }
 
+
+
 function Home(){
 
     return(
@@ -113,12 +129,48 @@ function Home(){
 
 }
 
-function Search(){
+function Search(props: {toSearch: string}){
+
+  const[searchResults, setSearchResults] = useState<Array<{}>>([]);
+
+  const getSearchResults=()=>{
+    fetch("https://api.tvmaze.com/search/shows?q="+props.toSearch)
+    .then(res => {
+      return res.json();
+    })
+    .then(results => {
+      setSearchResults(results);
+    });
+  }
+
+  useEffect(() => {
+    getSearchResults()
+  },[props.toSearch]);
 
   return (
-    <div className="Search"></div>
+    <div className="Search">
+      {searchResults && searchResults.length>0 && searchResults.map((item: any) => {
+        return (
+          <div className="search-episode-cnt">
+          <img src={item.show?.image?.medium} alt="no image"/><br/>
+          {item.show?.name}<br/>
+          </div>
+        )
+      })}
+    </div>
   );
 
+}
+
+function Shows(){
+
+  const [showsPage, setShowsPage] = useState(1);
+
+  return(
+    <div className="Shows">
+
+    </div>
+  );
 }
 
 function Calendar(){
@@ -129,7 +181,7 @@ function Calendar(){
 
 }
 
-function Main(props: {currentState: string, stateList: Array<string>}){
+function Main(props: {currentState: string, stateList: Array<string>, toSearch: string}){
 
   const currentState = props.currentState;
   const stateList = props.stateList;
@@ -138,9 +190,11 @@ function Main(props: {currentState: string, stateList: Array<string>}){
     case (stateList[0]) :
       return <Home/>;
     case (stateList[1]) :
-      return <Search/>;
+      return <Search toSearch={props.toSearch}/>;
     case (stateList[2]) :
-      return <Calendar/>;
+      return <Shows/>;
+    case (stateList[3]) :
+      return <Calendar/>
     default:
       return <Home/>;
   }
@@ -149,19 +203,45 @@ function Main(props: {currentState: string, stateList: Array<string>}){
 
 function App() {
 
-  const stateList: Array<string> = ["home", "search", "calendar"];
+  const stateList: Array<string> = ["home", "search", "shows", "calendar"];
   const [mainState, setMainState] = useState(stateList[0]);
+  const [searchValue, setSearchValue] = useState("");
+  const [toSearch, setToSearch] = useState("");
 
   function handleClick(i: number){
     setMainState(stateList[i]);
+    setToSearch(searchValue);
+  }
+
+  function handleSearch(e: React.ChangeEvent<HTMLInputElement>){
+    setSearchValue(e.target.value);
+  }
+
+  function handleEnter(e: React.KeyboardEvent<HTMLInputElement>){
+    if (e.key === "Enter"){
+      setMainState(stateList[1]);
+      setToSearch(searchValue);
+    }
   }
 
   return (
     <div className="App">
-      <Header onClick={i => handleClick(i)}/>
-      <Main currentState={mainState} stateList={stateList} />
+      <Header 
+        onClick={(i) => handleClick(i)} 
+        searchValue={searchValue} 
+        onChange={(e) => handleSearch(e)} 
+        onKeyDown={(e) => handleEnter(e)}
+      />
+      <Main currentState={mainState} stateList={stateList} toSearch={toSearch}/>
     </div>
   );
 }
+
+interface BannerProps {
+  onClick:(i:number)=>void,
+  searchValue: string, 
+  onChange:(e: React.ChangeEvent<HTMLInputElement>) => void,
+  onKeyDown:(e: React.KeyboardEvent<HTMLInputElement>) => void
+};
 
 export default App;

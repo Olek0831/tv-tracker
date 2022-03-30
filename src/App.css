@@ -24,7 +24,7 @@ body{
   border: inherit;
 }
 
-.search-cnt{
+.search-bar-cnt{
   border: inherit;
   grid-column: 3/6;
   grid-row: 2;
@@ -41,22 +41,8 @@ body{
   grid-template-columns: repeat(5, 1fr);
 }
 
-.today-episode-cnt0{
-  grid-column: 1;
-}
-
-.today-episode-cnt1{
-  grid-column: 2;
-}
-
-.today-episode-cnt2{
-  grid-column: 3;
-}
-
-.today-episode-cnt3{
-  grid-column: 4;
-}
-
-.today-episode-cnt4{
-  grid-column: 5;
+.Search{
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: auto;
 }
