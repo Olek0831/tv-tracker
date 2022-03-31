@@ -9,6 +9,7 @@ function Banner(props: BannerProps){
       </div>
       <div className="search-bar-cnt">
         <input 
+          className="search-bar" 
           type="search" 
           value={props.searchValue} 
           onChange={(e) => props.onChange(e)}
@@ -164,11 +165,38 @@ function Search(props: {toSearch: string}){
 
 function Shows(){
 
-  const [showsPage, setShowsPage] = useState(1);
+  const [showsPage, setShowsPage] = useState(0);
+  const [showsToShow, setShowsToShow] = useState<Array<{}>>([]);
+
+  let listPage: number = 0;
+  let showsArray: Array<{}> = [];
+
+  const getShowList=()=>{
+    fetch("https://api.tvmaze.com/shows?page="+listPage)
+    .then(res => {
+      return res.json();
+    })
+    .then(response => {
+      let showList: Array<{}> = response;
+      let index: number = (showsPage*25);
+      setShowsToShow(showList.slice(index, index+25))
+    });
+  }
+
+  useEffect(()=>{
+    getShowList();
+  },[]);
 
   return(
     <div className="Shows">
-
+      {showsToShow && showsToShow.length>0 && showsToShow.map((item: any) => {
+        return (
+          <div className="show-cnt">
+            <img src={item.image?.medium} alt="no image"/><br/>
+            {item.name}<br/>
+          </div>
+        )
+      })}
     </div>
   );
 }

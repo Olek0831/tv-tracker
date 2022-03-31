@@ -28,6 +28,11 @@ body{
   border: inherit;
   grid-column: 3/6;
   grid-row: 2;
+  text-align: center;
+}
+
+.search-bar{
+  display: inline-block;
 }
 
 .Navigation{
@@ -42,6 +47,12 @@ body{
 }
 
 .Search{
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: auto;
+}
+
+.Shows{
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: auto;
