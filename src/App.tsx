@@ -168,24 +168,40 @@ function Shows(){
   const [showsPage, setShowsPage] = useState(0);
   const [showsToShow, setShowsToShow] = useState<Array<{}>>([]);
 
-  let listPage: number = 0;
+  let listPage: number = Math.floor((showsPage*25)/250);
+  let index: number = (showsPage*25)-(listPage*250);
   let showsArray: Array<{}> = [];
 
-  const getShowList=()=>{
+  const getShowList=(listPage: number, index: number)=>{
     fetch("https://api.tvmaze.com/shows?page="+listPage)
     .then(res => {
-      return res.json();
+      if (res.ok){
+        return res.json();
+      }else{
+        return Promise.reject();
+      }
     })
     .then(response => {
-      let showList: Array<{}> = response;
-      let index: number = (showsPage*25);
-      setShowsToShow(showList.slice(index, index+25))
-    });
+      const showList: any = response;
+      for(let i: number = index; showsArray.length<25; i++){
+        if(showList[i] !== undefined){
+          showsArray.push(showList[i]);
+        }else{
+          break;
+        }
+      }
+      if (showsArray.length<25){
+        getShowList(listPage+1, 0);
+      }else{
+        setShowsToShow(showsArray);
+      }
+    })
+    .catch(err => setShowsToShow(showsArray));
   }
 
-  useEffect(()=>{
-    getShowList();
-  },[]);
+  useEffect(()=>{  
+    getShowList(listPage, index);
+  },[showsPage]);
 
   return(
     <div className="Shows">
@@ -195,7 +211,7 @@ function Shows(){
             <img src={item.image?.medium} alt="no image"/><br/>
             {item.name}<br/>
           </div>
-        )
+        );
       })}
     </div>
   );
