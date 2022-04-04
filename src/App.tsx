@@ -163,14 +163,47 @@ function Search(props: {toSearch: string}){
 
 }
 
+function Pagination(props: {page: number, onClick: (i: number)=>void}){
+
+  const currentPage: number = (props.page+1);
+  const listPage: number = Math.floor((props.page*25)/250);
+  const index: number = (props.page*25)-(listPage*250);
+
+
+
+  function renderButton(i: number){
+    if (i===currentPage){
+      return <button className="pagination-button-active">{i}</button>;
+    }else{
+      return <button className="Pagination-button" onClick={() => props.onClick(i-1)}>{i}</button>;
+    }
+  }
+
+  return(
+    <div className="pagination-cnt">
+      {Array(9).fill(null).map((item, i) => {
+        if (currentPage<=5){
+          return renderButton(i+1);
+        }else{
+          return renderButton((currentPage-4)+i);
+        }
+      })}
+    </div>
+  );
+}
+
 function Shows(){
 
   const [showsPage, setShowsPage] = useState(0);
   const [showsToShow, setShowsToShow] = useState<Array<{}>>([]);
 
-  let listPage: number = Math.floor((showsPage*25)/250);
-  let index: number = (showsPage*25)-(listPage*250);
+  const listPage: number = Math.floor((showsPage*25)/250);
+  const index: number = (showsPage*25)-(listPage*250);
   let showsArray: Array<{}> = [];
+
+  function handlePagination(i: number){
+    setShowsPage(i);
+  }
 
   const getShowList=(listPage: number, index: number)=>{
     fetch("https://api.tvmaze.com/shows?page="+listPage)
@@ -196,7 +229,9 @@ function Shows(){
         setShowsToShow(showsArray);
       }
     })
-    .catch(err => setShowsToShow(showsArray));
+    .catch(err => {
+      setShowsToShow(showsArray);
+    });
   }
 
   useEffect(()=>{  
@@ -213,6 +248,7 @@ function Shows(){
           </div>
         );
       })}
+      <Pagination page={showsPage} onClick={(i) => handlePagination(i)}/>
     </div>
   );
 }
