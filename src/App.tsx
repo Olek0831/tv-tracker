@@ -163,25 +163,63 @@ function Search(props: {toSearch: string}){
 
 }
 
+function Filter(){
+  return (
+    <div className="filter-bar"></div>
+  );
+}
+
 function Pagination(props: {page: number, onClick: (i: number)=>void}){
 
+  const [buttons, setButtons] = useState(0);
   const currentPage: number = (props.page+1);
-  const listPage: number = Math.floor((props.page*25)/250);
-  const index: number = (props.page*25)-(listPage*250);
+  const listPage: number = Math.floor((currentPage*25)/250);
+  const index: number = (currentPage*25)-(listPage*250);
 
+  let minusButtons = 4;
 
+  function getShowList(listPage: number, index: number){
+    fetch("https://api.tvmaze.com/shows?page="+listPage)
+    .then(res => {
+      if(res.ok){
+        return res.json();
+      }else{
+        return Promise.reject();
+      }
+    })
+    .then(response => {
+      const showsArray = response;
+      for(let i=index; i<=(index+75); (i = i+25)){
+        if (showsArray[i] !== undefined && minusButtons !== 0){
+          minusButtons--;
+        }else{
+          break;
+        }
+      }
+      if (minusButtons !== 0){
+        getShowList(listPage+1, 0);
+      }else{
+        setButtons(minusButtons)
+      }
+    })
+    .catch(err => setButtons(minusButtons));
+  }
 
   function renderButton(i: number){
     if (i===currentPage){
       return <button className="pagination-button-active">{i}</button>;
     }else{
-      return <button className="Pagination-button" onClick={() => props.onClick(i-1)}>{i}</button>;
+      return <button className="pagination-button" onClick={() => props.onClick(i-1)}>{i}</button>;
     }
   }
 
+  useEffect(()=>{
+    getShowList(listPage, index);
+  },[props.page]);
+
   return(
     <div className="pagination-cnt">
-      {Array(9).fill(null).map((item, i) => {
+      {Array(9-buttons).fill(null).map((item, i) => {
         if (currentPage<=5){
           return renderButton(i+1);
         }else{
@@ -216,6 +254,7 @@ function Shows(){
     })
     .then(response => {
       const showList: any = response;
+      console.log(showList);
       for(let i: number = index; showsArray.length<25; i++){
         if(showList[i] !== undefined){
           showsArray.push(showList[i]);
@@ -240,15 +279,18 @@ function Shows(){
 
   return(
     <div className="Shows">
-      {showsToShow && showsToShow.length>0 && showsToShow.map((item: any) => {
-        return (
-          <div className="show-cnt">
-            <img src={item.image?.medium} alt="no image"/><br/>
-            {item.name}<br/>
-          </div>
-        );
-      })}
-      <Pagination page={showsPage} onClick={(i) => handlePagination(i)}/>
+      <div className="shows-main">
+        {showsToShow && showsToShow.length>0 && showsToShow.map((item: any) => {
+          return (
+            <div className="show-cnt">
+              <img src={item.image?.medium} alt="no image"/><br/>
+              {item.name}<br/>
+            </div>
+          );
+        })}
+        <Pagination page={showsPage} onClick={(i) => handlePagination(i)}/>
+      </div>
+      <Filter/>
     </div>
   );
 }
