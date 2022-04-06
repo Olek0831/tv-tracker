@@ -163,9 +163,16 @@ function Search(props: {toSearch: string}){
 
 }
 
-function Filter(){
+function Filter(props: {genre: string, onGenreChange: (e: React.ChangeEvent<HTMLSelectElement>)=>void}){
+
   return (
-    <div className="filter-bar"></div>
+    <div className="filter-bar">
+      <select value={props.genre} onChange={(e) => props.onGenreChange(e)}>
+        {genres.map((item) => {
+          return <option value={item.value}>{item.value}</option>
+        })}
+      </select>
+    </div>
   );
 }
 
@@ -196,14 +203,19 @@ function Pagination(props: {page: number, buttons: number, onClick: (i: number)=
 
 function Shows(){
 
-  const [showsPage, setShowsPage] = useState(2453);
+  const [showsPage, setShowsPage] = useState(0);
   const [showsToShow, setShowsToShow] = useState<Array<{}>>([]);
   const [buttons, setButtons] = useState(0);
+  const [genre, setGenre] = useState("");
 
   const listPage: number = Math.floor((showsPage*25)/250);
   const index: number = (showsPage*25)-(listPage*250);
   let showsArray: Array<{}> = [];
   let minusButtons = 4;
+
+  function handleGenre(e: React.ChangeEvent<HTMLSelectElement>){
+    setGenre(e.target.value);
+  }
 
   function handlePagination(i: number){
     setShowsPage(i);
@@ -227,7 +239,7 @@ function Shows(){
           break;
         }
       }
-      for(let i=index; i<=(index+100); (i = i+25)){
+      for(let i=(index+25); i<=(index+100); (i = i+25)){
         if (showList[i] !== undefined && minusButtons !== 0){
           minusButtons--;
         }else{
@@ -239,6 +251,7 @@ function Shows(){
       }else{
         setButtons(minusButtons);
         setShowsToShow(showsArray);
+        console.log(showsToShow);
       }
     })
     .catch(err => {
@@ -264,7 +277,7 @@ function Shows(){
         })}
         <Pagination page={showsPage} buttons={buttons} onClick={(i) => handlePagination(i)}/>
     </div>
-    <Filter/>
+    <Filter genre={genre} onGenreChange={(e) => handleGenre(e)}/>
     </div>
   );
 }
@@ -339,5 +352,37 @@ interface BannerProps {
   onChange:(e: React.ChangeEvent<HTMLInputElement>) => void,
   onKeyDown:(e: React.KeyboardEvent<HTMLInputElement>) => void
 };
+
+const genres = [
+  {value: ""},
+  {value: "Action"},
+  {value: "Adult"},
+  {value: "Adventure"},
+  {value: "Anime"},
+  {value: "Children"},
+  {value: "Comedy"},
+  {value: "Crime"},
+  {value: "DIY"},
+  {value: "Drama"},
+  {value: "Espionage"},
+  {value: "Family"},
+  {value: "Fantasy"},
+  {value: "Food"},
+  {value: "History"},
+  {value: "Horror"},
+  {value: "Legal"},
+  {value: "Medical"},
+  {value: "Music"},
+  {value: "Mystery"},
+  {value: "Nature"},
+  {value: "Romance"},
+  {value: "Science-Fiction"},
+  {value: "Sports"},
+  {value: "Supernatural"},
+  {value: "Thriller"},
+  {value: "Travel"},
+  {value: "War"},
+  {value: "Western"},
+];
 
 export default App;
