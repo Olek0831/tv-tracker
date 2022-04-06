@@ -163,12 +163,22 @@ function Search(props: {toSearch: string}){
 
 }
 
-function Filter(props: {genre: string, onGenreChange: (e: React.ChangeEvent<HTMLSelectElement>)=>void}){
+function Filter(props: FilterProps){
 
   return (
     <div className="filter-bar">
       <select value={props.genre} onChange={(e) => props.onGenreChange(e)}>
         {genres.map((item) => {
+          return <option value={item.value}>{item.value}</option>
+        })}
+      </select>
+      <select value={props.type} onChange={(e) => props.onTypeChange(e)}>
+        {types.map((item) => {
+          return <option value={item.value}>{item.value}</option>
+        })}
+      </select>
+      <select value={props.status} onChange={(e) => props.onStatusChange(e)}>
+        {statuses.map((item) => {
           return <option value={item.value}>{item.value}</option>
         })}
       </select>
@@ -207,6 +217,8 @@ function Shows(){
   const [showsToShow, setShowsToShow] = useState<Array<{}>>([]);
   const [buttons, setButtons] = useState(0);
   const [genre, setGenre] = useState("");
+  const [type, setType] = useState("");
+  const [status, setStatus] = useState("");
 
   const listPage: number = Math.floor((showsPage*25)/250);
   const index: number = (showsPage*25)-(listPage*250);
@@ -215,6 +227,14 @@ function Shows(){
 
   function handleGenre(e: React.ChangeEvent<HTMLSelectElement>){
     setGenre(e.target.value);
+  }
+
+  function handleType(e: React.ChangeEvent<HTMLSelectElement>){
+    setType(e.target.value);
+  }
+
+  function handleStatus(e: React.ChangeEvent<HTMLSelectElement>){
+    setStatus(e.target.value);
   }
 
   function handlePagination(i: number){
@@ -277,7 +297,14 @@ function Shows(){
         })}
         <Pagination page={showsPage} buttons={buttons} onClick={(i) => handlePagination(i)}/>
     </div>
-    <Filter genre={genre} onGenreChange={(e) => handleGenre(e)}/>
+    <Filter 
+      genre={genre} 
+      type={type}
+      status={status}
+      onGenreChange={(e) => handleGenre(e)}
+      onTypeChange={(e) => handleType(e)}
+      onStatusChange={(e) => handleStatus(e)}
+    />
     </div>
   );
 }
@@ -353,6 +380,15 @@ interface BannerProps {
   onKeyDown:(e: React.KeyboardEvent<HTMLInputElement>) => void
 };
 
+interface FilterProps {
+  genre: string,
+  type: string,
+  status: string,
+  onGenreChange: (e: React.ChangeEvent<HTMLSelectElement>)=>void,
+  onTypeChange: (e: React.ChangeEvent<HTMLSelectElement>)=>void,
+  onStatusChange: (e: React.ChangeEvent<HTMLSelectElement>)=>void
+}
+
 const genres = [
   {value: ""},
   {value: "Action"},
@@ -382,7 +418,30 @@ const genres = [
   {value: "Thriller"},
   {value: "Travel"},
   {value: "War"},
-  {value: "Western"},
+  {value: "Western"}
 ];
+
+const types = [
+  {value: ""},
+  {value: "Scripted"},
+  {value: "Animation"},
+  {value: "Reality"},
+  {value: "Talk Show"},
+  {value: "Documentary"},
+  {value: "Game Show"},
+  {value: "News"},
+  {value: "Sports"},
+  {value: "Variety"},
+  {value: "Award Show"},
+  {value: "Panel Show"}
+];
+
+const statuses = [
+  {value: ""},
+  {value: "Running"},
+  {value: "Ended"},
+  {value: "To Be Determined"},
+  {value: "In Development"},
+]
 
 export default App;
