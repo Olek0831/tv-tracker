@@ -155,6 +155,7 @@ function Search(props: {toSearch: string}){
           <div className="search-episode-cnt">
           <img src={item.show?.image?.medium} alt="no image"/><br/>
           {item.show?.name}<br/>
+          {console.log(searchResults)}
           </div>
         )
       })}
@@ -182,6 +183,17 @@ function Filter(props: FilterProps){
           return <option value={item.value}>{item.value}</option>
         })}
       </select>
+      <select value={props.language} onChange={(e) => props.onLanguageChange(e)}>
+        {languages.map((item) => {
+          return <option value={item.value}>{item.value}</option>
+        })}
+      </select>
+      <select value={props.country} onChange={(e) => props.onCountryChange(e)}>
+        {countries.map((item) => {
+          return <option value={item.value}>{item.value}</option>
+        })}
+      </select>
+      <button onClick={() => props.onClick()}>Filter</button>
     </div>
   );
 }
@@ -219,11 +231,32 @@ function Shows(){
   const [genre, setGenre] = useState("");
   const [type, setType] = useState("");
   const [status, setStatus] = useState("");
+  const [language, setLanguage] = useState("");
+  const [country, setCountry] = useState("");
+  const [filters, setFilters] = useState({
+    genre: genre,
+    type: type,
+    status: status,
+    language: language,
+    country: country
+  });
 
   const listPage: number = Math.floor((showsPage*25)/250);
   const index: number = (showsPage*25)-(listPage*250);
   let showsArray: Array<{}> = [];
   let minusButtons = 4;
+
+  function applyFilters(){
+    const filtersObj = {
+      genre: genre,
+      type: type,
+      status: status,
+      language: language,
+      country: country
+    }
+
+    setFilters(filtersObj);
+  }
 
   function handleGenre(e: React.ChangeEvent<HTMLSelectElement>){
     setGenre(e.target.value);
@@ -235,6 +268,14 @@ function Shows(){
 
   function handleStatus(e: React.ChangeEvent<HTMLSelectElement>){
     setStatus(e.target.value);
+  }
+
+  function handleLanguage(e: React.ChangeEvent<HTMLSelectElement>){
+    setLanguage(e.target.value);
+  }
+
+  function handleCountry(e: React.ChangeEvent<HTMLSelectElement>){
+    setCountry(e.target.value);
   }
 
   function handlePagination(i: number){
@@ -271,7 +312,6 @@ function Shows(){
       }else{
         setButtons(minusButtons);
         setShowsToShow(showsArray);
-        console.log(showsToShow);
       }
     })
     .catch(err => {
@@ -282,7 +322,7 @@ function Shows(){
 
   useEffect(()=>{  
     getShowList(listPage, index);
-  },[showsPage]);
+  },[showsPage, filters]);
 
   return(
     <div className="Shows">
@@ -301,10 +341,16 @@ function Shows(){
       genre={genre} 
       type={type}
       status={status}
+      language={language}
+      country={country}
       onGenreChange={(e) => handleGenre(e)}
       onTypeChange={(e) => handleType(e)}
       onStatusChange={(e) => handleStatus(e)}
+      onLanguageChange={(e) => handleLanguage(e)}
+      onCountryChange={(e) => handleCountry(e)}
+      onClick={() => applyFilters()}
     />
+    <br/>
     </div>
   );
 }
@@ -384,9 +430,14 @@ interface FilterProps {
   genre: string,
   type: string,
   status: string,
+  language: string,
+  country: string,
   onGenreChange: (e: React.ChangeEvent<HTMLSelectElement>)=>void,
   onTypeChange: (e: React.ChangeEvent<HTMLSelectElement>)=>void,
-  onStatusChange: (e: React.ChangeEvent<HTMLSelectElement>)=>void
+  onStatusChange: (e: React.ChangeEvent<HTMLSelectElement>)=>void,
+  onLanguageChange: (e: React.ChangeEvent<HTMLSelectElement>)=>void,
+  onCountryChange: (e: React.ChangeEvent<HTMLSelectElement>)=>void,
+  onClick: ()=>void
 }
 
 const genres = [
@@ -442,6 +493,176 @@ const statuses = [
   {value: "Ended"},
   {value: "To Be Determined"},
   {value: "In Development"},
-]
+];
+
+const languages = [
+  {value: ""},
+  {value: "Afrikaans"},
+  {value: "Albanian"},
+  {value: "Arabic"},
+  {value: "Armenian"},
+  {value: "Azerbaijani"},
+  {value: "Basque"},
+  {value: "Belarusian"},
+  {value: "Bengali"},
+  {value: "Bosnian"},
+  {value: "Bulgarian"},
+  {value: "Catalan"},
+  {value: "Chechen"},
+  {value: "Chinese"},
+  {value: "Croatian"},
+  {value: "Czech"},
+  {value: "Danish"},
+  {value: "Divehi"},
+  {value: "Dutch"},
+  {value: "English"},
+  {value: "Estonian"},
+  {value: "Finnish"},
+  {value: "French"},
+  {value: "Galician"},
+  {value: "Georgian"},
+  {value: "German"},
+  {value: "Greek"},
+  {value: "Gujarati"},
+  {value: "Hebrew"},
+  {value: "Hindi"},
+  {value: "Hungarian"},
+  {value: "Iceland"},
+  {value: "Indonesian"},
+  {value: "Irish"},
+  {value: "Italian"},
+  {value: "Japanese"},
+  {value: "Javanese"},
+  {value: "Kannada"},
+  {value: "Kazakh"},
+  {value: "Kongo"},
+  {value: "Korean"},
+  {value: "Latin"},
+  {value: "Latvian"},
+  {value: "Lithuanian"},
+  {value: "Luxembourgish"},
+  {value: "Malay"},
+  {value: "Malayalam"},
+  {value: "Marathi"},
+  {value: "Mongolian"},
+  {value: "Norwegian"},
+  {value: "Panjabi"},
+  {value: "Pashto"},
+  {value: "Persian"},
+  {value: "Polish"},
+  {value: "Portuguese"},
+  {value: "Romanian"},
+  {value: "Russian"},
+  {value: "Serbian"},
+  {value: "Sinhalese"},
+  {value: "Slovak"},
+  {value: "Slovenian"},
+  {value: "Spanish"},
+  {value: "Swedish"},
+  {value: "Tagalog"},
+  {value: "Tamil"},
+  {value: "Telugu"},
+  {value: "Thai"},
+  {value: "Turkish"},
+  {value: "Ukrainian"},
+  {value: "Urdu"},
+  {value: "Uzbek"},
+  {value: "Vietnamese"},
+  {value: "Welsh"},
+  {value: "Scottish Gaelic"}
+];
+
+const countries = [
+  {value: ""},
+  {value: "Afghanistan"},
+  {value: "Albania"},
+  {value: "Algeria "},
+  {value: "Argentina"},
+  {value: "Armenia"},
+  {value: "Australia"},
+  {value: "Austria"},
+  {value: "Azerbaijan"},
+  {value: "Bangladesh"},
+  {value: "Belarus"},
+  {value: "Belgium"},
+  {value: "Bosnia and Herzegovina"},
+  {value: "Brazil"},
+  {value: "Bulgaria"},
+  {value: "Canada"},
+  {value: "Chile"},
+  {value: "China"},
+  {value: "Colombia"},
+  {value: "Croatia"},
+  {value: "Cyprus"},
+  {value: "Czech Republic"},
+  {value: "Denmark"},
+  {value: "Egypt"},
+  {value: "Estonia"},
+  {value: "Faroe Islands"},
+  {value: "Finland"},
+  {value: "France"},
+  {value: "French Polynesia"},
+  {value: "Georgia"},
+  {value: "Germany"},
+  {value: "Greece"},
+  {value: "Hong Kong"},
+  {value: "Hungary"},
+  {value: "Iceland"},
+  {value: "India"},
+  {value: "Indonesia"},
+  {value: "Iran, Islamic Republic of"},
+  {value: "Iraq"},
+  {value: "Ireland"},
+  {value: "Israel"},
+  {value: "Italy"},
+  {value: "Japan"},
+  {value: "Kazakhstan"},
+  {value: "Korea, Democratic People's Republic of"},
+  {value: "Korea, Republic of"},
+  {value: "Latvia"},
+  {value: "Lebanon"},
+  {value: "Lithuania"},
+  {value: "Luxembourg"},
+  {value: "Malaysia"},
+  {value: "Maldives"},
+  {value: "Mexico"},
+  {value: "Moldova, Republic of"},
+  {value: "Mongolia"},
+  {value: "Netherlands"},
+  {value: "New Zealand"},
+  {value: "Nigeria"},
+  {value: "Norway"},
+  {value: "Pakistan"},
+  {value: "Peru"},
+  {value: "Philippines"},
+  {value: "Poland"},
+  {value: "Portugal"},
+  {value: "Puerto Rico"},
+  {value: "Qatar"},
+  {value: "Romania"},
+  {value: "Russian Federation"},
+  {value: "Saudi Arabia"},
+  {value: "Serbia"},
+  {value: "Singapore"},
+  {value: "Slovakia"},
+  {value: "Slovenia"},
+  {value: "South Africa"},
+  {value: "Spain"},
+  {value: "Sri Lanka"},
+  {value: "Sweden"},
+  {value: "Switzerland"},
+  {value: "Taiwan, Province of China"},
+  {value: "Thailand"},
+  {value: "Trinidad and Tobago"},
+  {value: "Tunisia"},
+  {value: "Turkey"},
+  {value: "Ukraine"},
+  {value: "United Arab Emirates"},
+  {value: "United Kingdom"},
+  {value: "United States"},
+  {value: "Uzbekistan"},
+  {value: "Venezuela, Bolivarian Republic of"},
+  {value: "Viet Nam"}
+];
 
 export default App;
