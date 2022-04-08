@@ -246,7 +246,7 @@ function Shows(){
   let showsArray: Array<{}> = [];
   let minusButtons = 4;
 
-  function applyFilters(){
+  function updateFilters(){
     const filtersObj = {
       genre: genre,
       type: type,
@@ -282,6 +282,43 @@ function Shows(){
     setShowsPage(i);
   }
 
+  function applyFilters({genres, type, status, language, country}: Filters){
+    let g: boolean, t: boolean, s: boolean, l: boolean, c: boolean;
+    if ((filters.genre !== "" && genres.includes(filters.genre)) ||(filters.genre === "")){
+      g = true;
+    } else{
+      g = false;
+    }
+    if ((filters.type !== "" && filters.type === type)||(filters.type === "")){
+      t = true;
+    } else{
+      t = false;
+    }
+    if ((filters.status !== "" && filters.status === status)||(filters.status === "")){
+      s = true;
+    } else{
+      s = false;
+    }
+    if ((filters.language !== "" && filters.language === language)||(filters.language === "")){
+      l = true;
+    } else{
+      l = false;
+    }
+    if ((filters.country !== "" && filters.country === country)||(filters.country === "")){
+      c = true;
+    } else{
+      c = false;
+    }
+
+    if (g && t && s && l && c){
+      return true;
+    }else{
+      return false;
+    }
+
+  }
+  
+
   const getShowList=(listPage: number, index: number)=>{
     fetch("https://api.tvmaze.com/shows?page="+listPage)
     .then(res => {
@@ -295,7 +332,9 @@ function Shows(){
       const showList: any = response;
       for(let i: number = index; showsArray.length<25; i++){
         if(showList[i] !== undefined){
-          showsArray.push(showList[i]);
+          if (applyFilters(showList[i])){
+            showsArray.push(showList[i]);
+          }
         }else{
           break;
         }
@@ -348,7 +387,7 @@ function Shows(){
       onStatusChange={(e) => handleStatus(e)}
       onLanguageChange={(e) => handleLanguage(e)}
       onCountryChange={(e) => handleCountry(e)}
-      onClick={() => applyFilters()}
+      onClick={() => updateFilters()}
     />
     <br/>
     </div>
@@ -438,6 +477,14 @@ interface FilterProps {
   onLanguageChange: (e: React.ChangeEvent<HTMLSelectElement>)=>void,
   onCountryChange: (e: React.ChangeEvent<HTMLSelectElement>)=>void,
   onClick: ()=>void
+}
+
+interface Filters{
+  genres: Array<string>,
+  type: string,
+  status: string,
+  language: string,
+  country: string
 }
 
 const genres = [
