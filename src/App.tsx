@@ -40,7 +40,7 @@ function Header(props: BannerProps){
   );
 }
 
-function TodaysPremieres(){
+function TodaysPremieres(props: {}){
 
   interface Rating {
     show: {
@@ -54,9 +54,9 @@ function TodaysPremieres(){
   const[todaySchedule, setTodaySchedule] = useState<Array<Rating>>([]);
 
   const today = new Date();
-  let monthRaw = (today.getMonth()+1);
+  const monthRaw = (today.getMonth()+1);
   let month: string;
-  let dayRaw = today.getDate();
+  const dayRaw = today.getDate();
   let day: string;
   
   if (monthRaw < 10){
@@ -120,7 +120,7 @@ function TodaysPremieres(){
 
 
 
-function Home(){
+function Home(props: {}){
 
     return(
       <div className="Home">
@@ -198,9 +198,23 @@ function Filter(props: FilterProps){
   );
 }
 
-function Pagination(props: {page: number, buttons: number, onClick: (i: number)=>void}){
+function Pagination(props: {page: number, addButtons: number, onClick: (i: number)=>void}){
 
   const currentPage: number = (props.page+1);
+  let buttons: number;
+  let addedButtons: number;
+
+  if (props.addButtons<0){
+     addedButtons = 0;
+  }else{
+     addedButtons = props.addButtons;
+  }
+
+  if(currentPage<=5){
+    buttons = currentPage + addedButtons;
+  }else{
+    buttons = addedButtons + 5;
+  }
 
   function renderButton(i: number){
     if (i===currentPage){
@@ -212,7 +226,7 @@ function Pagination(props: {page: number, buttons: number, onClick: (i: number)=
 
   return(
     <div className="pagination-cnt">
-      {Array(9-props.buttons).fill(null).map((item, i) => {
+      {Array(buttons).fill(null).map((item, i) => {
         if (currentPage<=5){
           return renderButton(i+1);
         }else{
@@ -223,7 +237,7 @@ function Pagination(props: {page: number, buttons: number, onClick: (i: number)=
   );
 }
 
-function Shows(){
+function Shows(props: {}){
 
   const [showsPage, setShowsPage] = useState(0);
   const [showsToShow, setShowsToShow] = useState<Array<{}>>([]);
@@ -233,6 +247,7 @@ function Shows(){
   const [status, setStatus] = useState("");
   const [language, setLanguage] = useState("");
   const [country, setCountry] = useState("");
+  const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
     genre: genre,
     type: type,
@@ -243,8 +258,11 @@ function Shows(){
 
   const listPage: number = Math.floor((showsPage*25)/250);
   const index: number = (showsPage*25)-(listPage*250);
+  const abort = new AbortController();
+  const signal = abort.signal;
+  let showsCounter = -1;
   let showsArray: Array<{}> = [];
-  let minusButtons = 4;
+  
 
   function updateFilters(){
     const filtersObj = {
@@ -256,6 +274,7 @@ function Shows(){
     }
 
     setFilters(filtersObj);
+    setShowsPage(0);
   }
 
   function handleGenre(e: React.ChangeEvent<HTMLSelectElement>){
@@ -280,6 +299,32 @@ function Shows(){
 
   function handlePagination(i: number){
     setShowsPage(i);
+  }
+
+  function loader(){
+    if (loading === true){
+      return (
+        <p>Loading...</p>
+      )
+    }else if(showsToShow[0] === undefined){
+      return (
+        <p>No matches</p>
+      )
+    }else {
+      return (
+        <div className="shows-main">
+          {showsToShow && showsToShow.length>0 && showsToShow.map((item: any) => {
+            return (
+              <div className="show-cnt">
+                <img src={item.image?.medium} alt="no image"/><br/>
+                {item.name}<br/>
+              </div>
+            );
+          })}
+          <Pagination page={showsPage} addButtons={buttons} onClick={(i) => handlePagination(i)}/>
+        </div>
+      )
+    }
   }
 
   function applyFilters({genres, type, status, language, country}: Filters){
@@ -317,10 +362,9 @@ function Shows(){
     }
 
   }
-  
 
   const getShowList=(listPage: number, index: number)=>{
-    fetch("https://api.tvmaze.com/shows?page="+listPage)
+    fetch("https://api.tvmaze.com/shows?page="+listPage, {signal})
     .then(res => {
       if (res.ok){
         return res.json();
@@ -330,74 +374,152 @@ function Shows(){
     })
     .then(response => {
       const showList: any = response;
-      for(let i: number = index; showsArray.length<25; i++){
+      for(let i: number = index; showsCounter<125; i++){
         if(showList[i] !== undefined){
-          if (applyFilters(showList[i])){
+          if (showsArray.length<25 && applyFilters(showList[i])){
             showsArray.push(showList[i]);
+            showsCounter++;
+          }else if(applyFilters(showList[i])){
+            showsCounter++
           }
         }else{
           break;
         }
       }
-      for(let i=(index+25); i<=(index+100); (i = i+25)){
-        if (showList[i] !== undefined && minusButtons !== 0){
-          minusButtons--;
-        }else{
-          break;
-        }
-      }
-      if (minusButtons !== 0 || showsArray.length<25){
+      if (showsArray.length<25 || showsCounter<125){
         getShowList(listPage+1, 0);
       }else{
-        setButtons(minusButtons);
+        setButtons(Math.floor(showsCounter/25));
         setShowsToShow(showsArray);
+        setLoading(false);
       }
     })
     .catch(err => {
       setShowsToShow(showsArray);
-      setButtons(minusButtons);
+      setButtons(Math.floor(showsCounter/25));
+      setLoading(false);
     });
   }
 
-  useEffect(()=>{  
+  useEffect(()=>{
+    showsArray = [];
     getShowList(listPage, index);
+
+    return function cleanup(){
+      abort.abort();
+      setLoading(true);
+    }
+
   },[showsPage, filters]);
 
   return(
     <div className="Shows">
-      <div className="shows-main">
-        {showsToShow && showsToShow.length>0 && showsToShow.map((item: any) => {
-          return (
-            <div className="show-cnt">
-              <img src={item.image?.medium} alt="no image"/><br/>
-              {item.name}<br/>
-            </div>
-          );
-        })}
-        <Pagination page={showsPage} buttons={buttons} onClick={(i) => handlePagination(i)}/>
-    </div>
-    <Filter 
-      genre={genre} 
-      type={type}
-      status={status}
-      language={language}
-      country={country}
-      onGenreChange={(e) => handleGenre(e)}
-      onTypeChange={(e) => handleType(e)}
-      onStatusChange={(e) => handleStatus(e)}
-      onLanguageChange={(e) => handleLanguage(e)}
-      onCountryChange={(e) => handleCountry(e)}
-      onClick={() => updateFilters()}
-    />
-    <br/>
+      {loader()}
+      <Filter 
+        genre={genre} 
+        type={type}
+        status={status}
+        language={language}
+        country={country}
+        onGenreChange={(e) => handleGenre(e)}
+        onTypeChange={(e) => handleType(e)}
+        onStatusChange={(e) => handleStatus(e)}
+        onLanguageChange={(e) => handleLanguage(e)}
+        onCountryChange={(e) => handleCountry(e)}
+        onClick={() => updateFilters()}
+      />
+      <br/>
     </div>
   );
 }
 
-function Calendar(){
+function Calendar(props: {}){
+
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
+  ];
+
+  const days = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday"
+  ];
+
+  const today = new Date();
+  const monthRaw = today.getMonth();
+
+  const [currentMonth, setCurrentMonth] = useState(monthRaw);
+
+  const year = today.getFullYear();
+  const firstOfMonth = new Date(year, monthRaw, 1);
+
+ let firstDayRaw = (firstOfMonth.getDay()-1);
+
+  if (firstDayRaw === -1){
+    firstDayRaw = 6;
+  }
+
+  let daysArray: Array<number> = [];
+
+  let currentDay = firstOfMonth;
+
+  if (firstDayRaw > 0){
+    currentDay.setDate(-(firstDayRaw-1));
+  }
+
+  for(; (currentDay.getMonth())<(monthRaw+1); currentDay.setDate(currentDay.getDate()+1)){
+    daysArray.push(currentDay.getDate());
+  }
+
+  if ((daysArray.length%7) !== 0){
+    for(let i=1; (daysArray.length%7) !== 0; i++){
+      daysArray.push(i);
+    }
+  }
 
   return (
-    <div className="Calendar"></div>
+    <div className="Calendar">
+      <table>
+        <tr>
+          <td>button</td>
+          <th colSpan={5}>{currentMonth}</th>
+          <td>button</td>
+        </tr>
+        <tr>
+          {days.map((item) => {
+            return <th>{item}</th>;
+          })}
+        </tr>
+        {Array(Math.floor((daysArray.length/7)+1)).fill(null).map((item, i) => {
+          return (
+            <tr>
+              {daysArray.slice(i*7, (i*7)+7).map((day, j) => {
+                return(
+                  <td>
+                    {day}
+                  </td>
+                );
+              })}
+            </tr>
+          )
+        })}
+      </table>
+    </div>
   );
 
 }
