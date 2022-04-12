@@ -122,11 +122,11 @@ function TodaysPremieres(props: {}){
 
 function Home(props: {}){
 
-    return(
-      <div className="Home">
-        <TodaysPremieres/>
-      </div>
-    )
+   return(
+    <div className="Home">
+      <TodaysPremieres/>
+    </div>
+  )
 
 }
 
@@ -257,10 +257,9 @@ function Shows(props: {}){
   });
 
   const listPage: number = Math.floor((showsPage*25)/250);
-  const index: number = (showsPage*25)-(listPage*250);
+  const index: number = (Math.floor(showsPage/5)*125)-(listPage*250);
   const abort = new AbortController();
   const signal = abort.signal;
-  let showsCounter = -1;
   let showsArray: Array<{}> = [];
   
 
@@ -306,7 +305,7 @@ function Shows(props: {}){
       return (
         <p>Loading...</p>
       )
-    }else if(showsToShow[0] === undefined){
+    }else if(showsToShow.length === 0){
       return (
         <p>No matches</p>
       )
@@ -364,6 +363,10 @@ function Shows(props: {}){
   }
 
   const getShowList=(listPage: number, index: number)=>{
+ 
+    const showsArrayLast = (((showsPage%5)+1)*25);
+    const showsArrayFirst = showsArrayLast-25;
+
     fetch("https://api.tvmaze.com/shows?page="+listPage, {signal})
     .then(res => {
       if (res.ok){
@@ -374,30 +377,28 @@ function Shows(props: {}){
     })
     .then(response => {
       const showList: any = response;
-      for(let i: number = index; showsCounter<125; i++){
+      for(let i: number = index; showsArray.length<125; i++){
         if(showList[i] !== undefined){
-          if (showsArray.length<25 && applyFilters(showList[i])){
+          if (showsArray.length<125 && applyFilters(showList[i])){
             showsArray.push(showList[i]);
-            showsCounter++;
-          }else if(applyFilters(showList[i])){
-            showsCounter++
           }
         }else{
           break;
         }
       }
-      if (showsArray.length<25 || showsCounter<125){
+      if (showsArray.length<125){
         getShowList(listPage+1, 0);
       }else{
-        setButtons(Math.floor(showsCounter/25));
-        setShowsToShow(showsArray);
+        setButtons(Math.floor(showsArray.length/25));
+        setShowsToShow(showsArray.slice(showsArrayFirst, showsArrayLast));
         setLoading(false);
       }
     })
     .catch(err => {
-      setShowsToShow(showsArray);
-      setButtons(Math.floor(showsCounter/25));
+      setShowsToShow(showsArray.slice(showsArrayFirst, showsArrayLast));
+      setButtons(Math.floor(showsArray.length/25));
       setLoading(false);
+      console.log(showsToShow);
     });
   }
 
@@ -461,28 +462,29 @@ function Calendar(props: {}){
   ];
 
   const today = new Date();
-  const monthRaw = today.getMonth();
 
-  const [currentMonth, setCurrentMonth] = useState(monthRaw);
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
 
-  const year = today.getFullYear();
-  const firstOfMonth = new Date(year, monthRaw, 1);
+  const firstOfMonth = new Date(currentYear, currentMonth, 1);
 
- let firstDayRaw = (firstOfMonth.getDay()-1);
+  let firstDayRaw = (firstOfMonth.getDay()-1);
 
   if (firstDayRaw === -1){
     firstDayRaw = 6;
   }
 
   let daysArray: Array<number> = [];
-
-  let currentDay = firstOfMonth;
+  let currentDay = new Date(firstOfMonth);
 
   if (firstDayRaw > 0){
     currentDay.setDate(-(firstDayRaw-1));
   }
 
-  for(; (currentDay.getMonth())<(monthRaw+1); currentDay.setDate(currentDay.getDate()+1)){
+  let lastOfMonth = new Date(firstOfMonth);
+  lastOfMonth.setMonth(firstOfMonth.getMonth()+1);
+
+  for(; currentDay<lastOfMonth; currentDay.setDate(currentDay.getDate()+1)){
     daysArray.push(currentDay.getDate());
   }
 
@@ -492,13 +494,43 @@ function Calendar(props: {}){
     }
   }
 
+  function handlePrev(){
+    let monthControl = currentMonth;
+    let yearControl = currentYear;
+
+    monthControl = monthControl - 1;
+    if (monthControl === -1){
+      monthControl = 11;
+      yearControl = yearControl - 1;
+    }
+    setCurrentYear(yearControl);
+    setCurrentMonth(monthControl);
+  }
+
+  function handleNext(){
+    let monthControl = currentMonth;
+    let yearControl = currentYear;
+
+    monthControl = monthControl + 1;
+    if (monthControl === 12){
+      monthControl = 0;
+      yearControl = yearControl + 1;
+    }
+    setCurrentYear(yearControl);
+    setCurrentMonth(monthControl);
+  }
+
   return (
     <div className="Calendar">
       <table>
         <tr>
-          <td>button</td>
-          <th colSpan={5}>{currentMonth}</th>
-          <td>button</td>
+          <td>
+            <button onClick={() => handlePrev()}>Prev</button>
+          </td>
+          <th colSpan={5}>{months[currentMonth]} {currentYear}</th>
+          <td>
+            <button onClick={() => handleNext()}>Next</button>
+          </td>
         </tr>
         <tr>
           {days.map((item) => {
