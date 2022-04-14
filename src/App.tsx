@@ -362,12 +362,12 @@ function Shows(props: {}){
 
   }
 
-  const getShowList=(listPage: number, index: number)=>{
+  function getShowList(page: number, index: number){
  
     const showsArrayLast = (((showsPage%5)+1)*25);
     const showsArrayFirst = showsArrayLast-25;
 
-    fetch("https://api.tvmaze.com/shows?page="+listPage, {signal})
+    fetch("https://api.tvmaze.com/shows?page="+page, {signal})
     .then(res => {
       if (res.ok){
         return res.json();
@@ -387,7 +387,7 @@ function Shows(props: {}){
         }
       }
       if (showsArray.length<125){
-        getShowList(listPage+1, 0);
+        getShowList(page+1, 0);
       }else{
         setButtons(Math.floor(showsArray.length/25));
         setShowsToShow(showsArray.slice(showsArrayFirst, showsArrayLast));
@@ -398,16 +398,15 @@ function Shows(props: {}){
       setShowsToShow(showsArray.slice(showsArrayFirst, showsArrayLast));
       setButtons(Math.floor(showsArray.length/25));
       setLoading(false);
-      console.log(showsToShow);
     });
   }
 
   useEffect(()=>{
-    showsArray = [];
     getShowList(listPage, index);
 
     return function cleanup(){
       abort.abort();
+      showsArray = [];
       setLoading(true);
     }
 
