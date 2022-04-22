@@ -1,4 +1,4 @@
-import React, { useEffect, useState} from 'react';
+import React, { useEffect, useState, useRef} from 'react';
 import './App.css';
 
 function Banner(props: BannerProps){
@@ -247,23 +247,23 @@ function Shows(props: {}){
   const [status, setStatus] = useState("");
   const [language, setLanguage] = useState("");
   const [country, setCountry] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     genre: genre,
     type: type,
     status: status,
     language: language,
     country: country
-  });
+  }); 
 
-  const listPage: number = Math.floor((showsPage*25)/250);
-  const index: number = (Math.floor(showsPage/5)*125)-(listPage*250);
   const abort = new AbortController();
   const signal = abort.signal;
+  let listPage = useRef<Array<number>>([0]);
+  let firstIndex = useRef<Array<number>>([0]);
   let showsArray: Array<{}> = [];
-  
 
   function updateFilters(){
+    setLoading(true);
     const filtersObj = {
       genre: genre,
       type: type,
@@ -297,6 +297,7 @@ function Shows(props: {}){
   }
 
   function handlePagination(i: number){
+    setLoading(true);
     setShowsPage(i);
   }
 
@@ -359,14 +360,9 @@ function Shows(props: {}){
     }else{
       return false;
     }
-
   }
 
   function getShowList(page: number, index: number){
- 
-    const showsArrayLast = (((showsPage%5)+1)*25);
-    const showsArrayFirst = showsArrayLast-25;
-
     fetch("https://api.tvmaze.com/shows?page="+page, {signal})
     .then(res => {
       if (res.ok){
@@ -376,41 +372,62 @@ function Shows(props: {}){
       }
     })
     .then(response => {
-      const showList: any = response;
-      for(let i: number = index; showsArray.length<125; i++){
+      const showList = response;
+      for(let i = index; showsArray.length<125; i++){
         if(showList[i] !== undefined){
-          if (showsArray.length<125 && applyFilters(showList[i])){
+          if(applyFilters(showList[i])){
             showsArray.push(showList[i]);
+            switch(showsArray.length){
+              case(25):
+                listPage.current[showsPage+1] = page;
+                firstIndex.current[showsPage+1] = i+1;
+                break;
+              case(50):
+                listPage.current[showsPage+2] = page;
+                firstIndex.current[showsPage+2] = i+1;
+                break;
+              case(75):
+                listPage.current[showsPage+3] = page;
+                firstIndex.current[showsPage+3] = i+1;
+                break;
+              case(100):
+                listPage.current[showsPage+4] = page;
+                firstIndex.current[showsPage+4] = i+1;
+                break;
+              case(125):
+                listPage.current[showsPage+5] = page;
+                firstIndex.current[showsPage+5] = i+1;
+                break;
+            }
           }
-        }else{
+        }
+        else{
           break;
         }
       }
       if (showsArray.length<125){
         getShowList(page+1, 0);
       }else{
-        setButtons(Math.floor(showsArray.length/25));
-        setShowsToShow(showsArray.slice(showsArrayFirst, showsArrayLast));
+        setShowsToShow(showsArray.slice(0, 25));
+        setButtons(Math.floor((showsArray.length - 1)/25));
         setLoading(false);
       }
     })
     .catch(err => {
-      setShowsToShow(showsArray.slice(showsArrayFirst, showsArrayLast));
-      setButtons(Math.floor(showsArray.length/25));
+      setShowsToShow(showsArray.slice(0, 25));
+      setButtons(Math.floor((showsArray.length-1)/25));
       setLoading(false);
-    });
+      console.log(err);
+    })
   }
 
-  useEffect(()=>{
-    getShowList(listPage, index);
+  useEffect(() => {
+    getShowList(listPage.current[showsPage], firstIndex.current[showsPage]);
 
     return function cleanup(){
       abort.abort();
-      showsArray = [];
-      setLoading(true);
     }
-
-  },[showsPage, filters]);
+  }, [showsPage, filters]);
 
   return(
     <div className="Shows">
