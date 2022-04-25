@@ -47,11 +47,14 @@ function TodaysPremieres(props: {}){
       rating: {
         average: number;
       }
+      type: string;
     }
     airdate: string;
+    airtime: string;
   }
 
-  const[todaySchedule, setTodaySchedule] = useState<Array<Rating>>([]);
+  const [todaySchedule, setTodaySchedule] = useState<Array<Rating>>([]);
+  const [fullTodaySchedule, setFullTodaySchedule] = useState<Array<{}>>([]);
 
   const today = new Date();
   const monthRaw = (today.getMonth()+1);
@@ -81,6 +84,7 @@ function TodaysPremieres(props: {}){
       return res.json();
     })
     .then(schedule => {
+      setFullTodaySchedule(schedule);
       const scheduleSortedByRating = schedule.sort((a: Rating, b: Rating) => {
         return b.show.rating.average - a.show.rating.average;
       });
@@ -88,7 +92,7 @@ function TodaysPremieres(props: {}){
       let todayShowsByRating: Rating[] = [];
       
       scheduleSortedByRating.forEach((element: Rating) => {
-        if (element.show.rating.average > 0 && element.airdate === date){
+        if (element.show.rating.average > 0 && element.airdate === date && element.show.type === "Scripted" && element.airtime > "19:00"){
           todayShowsByRating.push(element);
         }
       });
@@ -101,6 +105,9 @@ function TodaysPremieres(props: {}){
   },[]);
 
   return(
+    
+    <>
+    <h2>Best shows airing tonight</h2>
     <div className="todays-premieres">
       {todaySchedule && todaySchedule.length>0 && todaySchedule.map((item: any, i: number)=>{
         return (
@@ -114,11 +121,21 @@ function TodaysPremieres(props: {}){
         )
       })}
     </div>
+    <div className="today-full">
+      <h2>Full schedule for today</h2>
+      {fullTodaySchedule && fullTodaySchedule.length>0 && fullTodaySchedule.map((item: any) => {
+        return (
+          <div>
+            {item.show.name}
+          </div>
+        )
+      })}
+    </div>
+    </>
+    
   )
 
 }
-
-
 
 function Home(props: {}){
 
@@ -155,7 +172,6 @@ function Search(props: {toSearch: string}){
           <div className="search-episode-cnt">
           <img src={item.show?.image?.medium} alt="no image"/><br/>
           {item.show?.name}<br/>
-          {console.log(searchResults)}
           </div>
         )
       })}
@@ -417,7 +433,6 @@ function Shows(props: {}){
       setShowsToShow(showsArray.slice(0, 25));
       setButtons(Math.floor((showsArray.length-1)/25));
       setLoading(false);
-      console.log(err);
     })
   }
 
@@ -481,6 +496,7 @@ function Calendar(props: {}){
 
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  const [schedule, setSchedule] = useState<Array<Array<{}>>>([[]]);
 
   const firstOfMonth = new Date(currentYear, currentMonth, 1);
 
@@ -536,9 +552,64 @@ function Calendar(props: {}){
     setCurrentMonth(monthControl);
   }
 
+  async function getSchedule(){
+    let scheduleList: Array<Array<{}>> = [];
+    let dataArray: Array<{}> = [];
+    let monthRaw = currentMonth;
+    
+    for(let i = 0; i<daysArray.length; i++){
+      let day: string | number;
+      let month: string | number;
+      let year = currentYear
+
+      if(monthRaw === 0){
+        month = 12;
+        year = year - 1;
+      }
+
+      if(daysArray[i] === 1){
+        monthRaw = monthRaw + 1;
+      }
+
+      if (monthRaw === 13){
+        month = 1;
+        year = year + 1;
+      }
+
+      if (monthRaw < 10){
+        month = "0"+monthRaw;
+      }else{
+        month = monthRaw;
+      }
+
+      if (daysArray[i]<10){
+        day = "0"+daysArray[i];
+      }else{
+        day = daysArray[i];
+      }
+
+      const date = year+"-"+month+"-"+day
+
+      const response = await fetch("https://api.tvmaze.com/schedule?date="+date);
+      const data = await response.json();
+      data.map((item: {airdate: string, show: {type: string}}) => {
+        if (item.show.type === "Scripted" && item.airdate === date){
+          dataArray.push(item);
+        }
+      })
+      scheduleList[i] = dataArray;
+      dataArray = [];
+    }
+    setSchedule(scheduleList);
+  }
+
+  useEffect(() => {
+    getSchedule();
+  }, [currentMonth]);
+
   return (
     <div className="Calendar">
-      <table>
+      <table className="calendar-table">
         <tr>
           <td>
             <button onClick={() => handlePrev()}>Prev</button>
@@ -558,8 +629,15 @@ function Calendar(props: {}){
             <tr>
               {daysArray.slice(i*7, (i*7)+7).map((day, j) => {
                 return(
-                  <td>
-                    {day}
+                  <td className="day">
+                    {day}<br/>
+                    {schedule[j+(i*7)] && schedule.length>0 && schedule[j+(i*7)].map((show: any) => {
+                      return (
+                        <>
+                          {show.show.name} <br/>
+                        </>
+                      )
+                    })}
                   </td>
                 );
               })}

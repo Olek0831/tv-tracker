@@ -57,3 +57,11 @@ body{
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: auto;
 }
+
+.calendar-table{
+  border: 1px solid black;
+}
+
+.day{
+  border: 1px solid black;
+}
