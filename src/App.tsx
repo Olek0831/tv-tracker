@@ -40,21 +40,22 @@ function Header(props: BannerProps){
   );
 }
 
-function TodaysPremieres(props: {}){
+function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number)=>void}){
 
-  interface Rating {
+  interface Episode {
     show: {
       rating: {
         average: number;
       }
+      name: string;
       type: string;
     }
     airdate: string;
     airtime: string;
   }
 
-  const [todaySchedule, setTodaySchedule] = useState<Array<Rating>>([]);
-  const [fullTodaySchedule, setFullTodaySchedule] = useState<Array<{}>>([]);
+  const [todaySchedule, setTodaySchedule] = useState<Array<Episode>>([]);
+  const [fullTodaySchedule, setFullTodaySchedule] = useState<Array<Episode>>([]);
 
   const today = new Date();
   const monthRaw = (today.getMonth()+1);
@@ -85,19 +86,53 @@ function TodaysPremieres(props: {}){
     })
     .then(schedule => {
       setFullTodaySchedule(schedule);
-      const scheduleSortedByRating = schedule.sort((a: Rating, b: Rating) => {
+      const scheduleSortedByRating = schedule.sort((a: Episode, b: Episode) => {
         return b.show.rating.average - a.show.rating.average;
       });
 
-      let todayShowsByRating: Rating[] = [];
+      let todayShowsByRating: Episode[] = [];
       
-      scheduleSortedByRating.forEach((element: Rating) => {
+      scheduleSortedByRating.forEach((element: Episode) => {
         if (element.show.rating.average > 0 && element.airdate === date && element.show.type === "Scripted" && element.airtime > "19:00"){
           todayShowsByRating.push(element);
         }
       });
       setTodaySchedule(todayShowsByRating.slice(0, 5));
     });
+  }
+
+  function renderFullSch(ep: Array<Episode>){
+
+    let airtimesArray: Array<string> = [];
+
+    ep.forEach((element: Episode) => {
+      if (!airtimesArray.includes(element.airtime) && element.airdate === date){
+        airtimesArray.push(element.airtime);
+      }
+    })
+
+    airtimesArray.sort();
+
+    return(
+      <>
+        {airtimesArray.map((time, i) => {
+          return(
+            <div>
+              <h3>{time}</h3>
+              {ep.map((episode, j) => {
+                if (episode.airtime === time){
+                  return (
+                    <>
+                      {episode.show.name}<br/>
+                    </>
+                  )
+                }
+              })}
+            </div>
+          )
+        })}
+      </>
+    )
   }
 
   useEffect(() => {
@@ -116,20 +151,16 @@ function TodaysPremieres(props: {}){
             {item.show.name}<br/>
             {item.name}<br/>
             {item.airtime}<br/>
-            {item.show.rating.average}
+            {item.show.rating.average}<br/>
+            <button onClick={() => props.details(item.show.id)}>Details</button>
           </div>
         )
       })}
+      <p><button onClick={() => props.moreShows()}>More shows &nbsp; &gt;&gt;</button></p>
     </div>
     <div className="today-full">
       <h2>Full schedule for today</h2>
-      {fullTodaySchedule && fullTodaySchedule.length>0 && fullTodaySchedule.map((item: any) => {
-        return (
-          <div>
-            {item.show.name}
-          </div>
-        )
-      })}
+      {fullTodaySchedule && fullTodaySchedule.length>0 && renderFullSch(fullTodaySchedule)}
     </div>
     </>
     
@@ -137,11 +168,11 @@ function TodaysPremieres(props: {}){
 
 }
 
-function Home(props: {}){
+function Home(props: {moreShows: ()=>void, details: (id: number)=>void}){
 
    return(
     <div className="Home">
-      <TodaysPremieres/>
+      <TodaysPremieres moreShows={() => props.moreShows()} details={(id) => props.details(id)}/>
     </div>
   )
 
@@ -650,36 +681,91 @@ function Calendar(props: {}){
 
 }
 
-function Main(props: {currentState: string, stateList: Array<string>, toSearch: string}){
+function ShowInfo(props: {id: number}){
+
+  const [show, setShow] = useState<any>();
+
+  function getShowInfo(){
+    fetch("https://api.tvmaze.com/shows/"+props.id+"?embed=episodes")
+    .then(res => {
+      if (res.ok){
+        return res.json();
+      }
+    })
+    .then(response => {
+      setShow(response);
+    })
+    
+  }
+
+  useEffect(() => {
+    getShowInfo();
+  },[]);
+
+  if (show){
+    return(
+      <div className="show-info">
+        <h1>{show.name}</h1>
+        <img src={show.image.medium} alt="no image"/><br/>
+        {show.genres.map((item:any)=> {
+          return (
+            <>
+              {item}<br/>
+            </>
+          )
+        })}
+        {show.officialSite}<br/>
+        {show.rating.average}
+        <div dangerouslySetInnerHTML={{__html: show.summary}}/>
+        <div>
+          {[...show._embedded.episodes].reverse().map((episode:any) => {
+            return (
+              <>
+                {episode.name}<br/>
+              </>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }else{
+    return <div></div>
+  }
+}
+
+function Main(props: MainProps){
 
   const currentState = props.currentState;
   const stateList = props.stateList;
 
   switch (currentState) {
     case (stateList[0]) :
-      return <Home/>;
+      return <Home moreShows={() => props.moreShows()} details={(id) => props.details(id)}/>;
     case (stateList[1]) :
       return <Search toSearch={props.toSearch}/>;
     case (stateList[2]) :
       return <Shows/>;
     case (stateList[3]) :
-      return <Calendar/>
+      return <Calendar/>;
+    case(stateList[4]) :
+      return <ShowInfo id={props.ID}/>;
     default:
-      return <Home/>;
+      return <Home moreShows={() => props.moreShows()} details={(id) => props.details(id)}/>;
   }
 
 }
 
 function App() {
 
-  const stateList: Array<string> = ["home", "search", "shows", "calendar"];
+  const stateList: Array<string> = ["home", "search", "shows", "calendar", "showInfo"];
   const [mainState, setMainState] = useState(stateList[0]);
   const [searchValue, setSearchValue] = useState("");
   const [toSearch, setToSearch] = useState("");
+  const [showId, setShowID] = useState<number>(0);
 
   function handleClick(i: number){
-    setMainState(stateList[i]);
     setToSearch(searchValue);
+    setMainState(stateList[i]);
   }
 
   function handleSearch(e: React.ChangeEvent<HTMLInputElement>){
@@ -688,9 +774,18 @@ function App() {
 
   function handleEnter(e: React.KeyboardEvent<HTMLInputElement>){
     if (e.key === "Enter"){
-      setMainState(stateList[1]);
       setToSearch(searchValue);
+      setMainState(stateList[1]);
     }
+  }
+
+  function handleMoreShows(){
+    setMainState(stateList[2]);
+  }
+
+  function handleDetails(id: number){
+    setShowID(id);
+    setMainState(stateList[4]);
   }
 
   return (
@@ -701,9 +796,25 @@ function App() {
         onChange={(e) => handleSearch(e)} 
         onKeyDown={(e) => handleEnter(e)}
       />
-      <Main currentState={mainState} stateList={stateList} toSearch={toSearch}/>
+      <Main 
+        currentState={mainState} 
+        stateList={stateList} 
+        toSearch={toSearch} 
+        moreShows={() => handleMoreShows()}
+        ID={showId}
+        details={(id) => handleDetails(id)}
+      />
     </div>
   );
+}
+
+interface MainProps {
+  currentState: string,
+  stateList: Array<string>, 
+  toSearch: string, 
+  moreShows: ()=>void,
+  ID: number
+  details:(id: number) => void
 }
 
 interface BannerProps {
