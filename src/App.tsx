@@ -5,7 +5,9 @@ function Banner(props: BannerProps){
   return(
     <div className="Banner">
       <div className="logo-cnt">
-        <button className="logo" onClick={() => props.onClick(0)}>home</button>
+        <button className="logo-btn" onClick={() => props.onClick(0)}>
+          <img className="logo" src={require(".//img/TV Tracker.png")} alt="Logo"/>
+        </button>
       </div>
       <div className="search-bar-cnt">
         <input 
@@ -15,7 +17,13 @@ function Banner(props: BannerProps){
           onChange={(e) => props.onChange(e)}
           onKeyDown={(e) => props.onKeyDown(e)}
         />
-        <button onClick={() => props.onClick(1)}>szukaj</button>
+        <button className="search-btn" onClick={() => props.onClick(1)}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-search" viewBox="0 0 24 24" strokeWidth="2.5" stroke="#ffffff" fill="none" strokeLinecap="round" strokeLinejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <circle cx="10" cy="10" r="7" />
+            <line x1="21" y1="21" x2="15" y2="15" />
+          </svg>
+        </button>
       </div>
     </div>
   )
@@ -24,9 +32,16 @@ function Banner(props: BannerProps){
 function Navigation(props: {onClick:(i:number)=>void}){
   return(
     <div className="Navigation">
-      <button onClick={() => props.onClick(0)}>home</button>
-      <button onClick={() => props.onClick(2)}>shows</button>
-      <button onClick={() => props.onClick(3)}>calendar</button>
+      <button className="nav-btn nav-home-btn" onClick={() => props.onClick(0)}>
+        <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-home" width="40" height="40" viewBox="0 0 24 24" strokeWidth="1.5" stroke="#ffffff" fill="none" strokeLinecap="round" strokeLinejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <polyline points="5 12 3 12 12 3 21 12 19 12" />
+          <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+          <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+        </svg>
+      </button>
+      <button className="nav-btn" onClick={() => props.onClick(2)}>Shows</button>
+      <button className="nav-btn" onClick={() => props.onClick(3)}>Calendar</button>
     </div>
   )
 }
@@ -171,7 +186,7 @@ function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number)=>voi
 function Home(props: {moreShows: ()=>void, details: (id: number)=>void}){
 
    return(
-    <div className="Home">
+    <div className="Home main">
       <TodaysPremieres moreShows={() => props.moreShows()} details={(id) => props.details(id)}/>
     </div>
   )
@@ -197,7 +212,7 @@ function Search(props: {toSearch: string}){
   },[props.toSearch]);
 
   return (
-    <div className="Search">
+    <div className="Search main">
       {searchResults && searchResults.length>0 && searchResults.map((item: any) => {
         return (
           <div className="search-episode-cnt">
@@ -476,7 +491,7 @@ function Shows(props: {}){
   }, [showsPage, filters]);
 
   return(
-    <div className="Shows">
+    <div className="Shows main">
       {loader()}
       <Filter 
         genre={genre} 
@@ -639,7 +654,7 @@ function Calendar(props: {}){
   }, [currentMonth]);
 
   return (
-    <div className="Calendar">
+    <div className="Calendar main">
       <table className="calendar-table">
         <tr>
           <td>
@@ -704,7 +719,7 @@ function ShowInfo(props: {id: number}){
 
   if (show){
     return(
-      <div className="show-info">
+      <div className="show-info main">
         <h1>{show.name}</h1>
         <img src={show.image.medium} alt="no image"/><br/>
         {show.genres.map((item:any)=> {
@@ -721,7 +736,7 @@ function ShowInfo(props: {id: number}){
           {[...show._embedded.episodes].reverse().map((episode:any) => {
             return (
               <>
-                {episode.name}<br/>
+                {episode.name} | {episode.airdate}<br/>
               </>
             )
           })}
