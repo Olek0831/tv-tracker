@@ -157,21 +157,22 @@ function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number)=>voi
   return(
     
     <>
-    <h2>Best shows airing tonight</h2>
+    <h2 className="today-header">Best shows airing tonight</h2>
     <div className="todays-premieres">
       {todaySchedule && todaySchedule.length>0 && todaySchedule.map((item: any, i: number)=>{
         return (
           <div className="today-episode-cnt">
-            <img src={item.show.image.medium} alt=""/><br/>
-            {item.show.name}<br/>
-            {item.name}<br/>
-            {item.airtime}<br/>
-            {item.show.rating.average}<br/>
-            <button onClick={() => props.details(item.show.id)}>Details</button>
+            <img className="today-episode-img" src={item.show.image.medium} onClick={() => props.details(item.show.id)} alt=""/><br/>
+            <div className="today-ep-info-cnt">
+              <button className="today-title show-title" onClick={() => props.details(item.show.id)}>{item.show.name}</button><br/>
+              <button className="today-title ep-title">{item.name}</button><br/>
+              {item.airtime}<br/>
+              {item.show.rating.average}<br/>
+            </div>
           </div>
         )
       })}
-      <p><button onClick={() => props.moreShows()}>More shows &nbsp; &gt;&gt;</button></p>
+      <p><button className="more-shows" onClick={() => props.moreShows()}>More shows &nbsp; &gt;&gt;</button></p>
     </div>
     <div className="today-full">
       <h2>Full schedule for today</h2>
