@@ -38,14 +38,13 @@ button:focus{
   margin-right: 10vw;
   background: inherit;
   cursor: pointer;
-  height: 9vh;
-  width: 25vw;
+  max-height: 9vh;
+  max-width: 25vw;
 }
 
 .logo{
   max-width: 100%;
   height: auto;
-  transform: translate(0, -5%);
 }
 
 .search-bar-cnt{
@@ -98,6 +97,7 @@ button:focus{
   grid-row: 2;
   display: flex;
   align-items: center;
+  position: relative;
 }
 
 .nav-btn{
@@ -106,7 +106,9 @@ button:focus{
   text-align: center;
   color: white;
   height: 4vh;
-  width: 6vw;
+  min-width: 6vw;
+  margin: 1px;
+  padding: 0 1vw 0 1vw;
 }
 
 .nav-home-btn{
@@ -121,6 +123,29 @@ button:focus{
   height: 4vh;
 }
 
+.menu-btn{
+  width: 100%;
+}
+
+.nav-menu ul{
+  display: none;
+}
+
+.nav-menu.expanded ul{
+  display: block;
+}
+
+.nav-menu li{
+  list-style-type: none;
+  flex-direction: column;
+  width: 100%;
+}
+
+.nav-menu-btn{
+  display: block;
+  width: 100%;
+}
+
 .Home{
   padding: 2vh 5vw 5vh 5vw;
   margin: 0 10vw 0 10vw;
@@ -132,7 +157,6 @@ button:focus{
 }
 
 .todays-premieres{
-  /*border: 1px solid black;*/
   display: grid;
   grid-template-columns: repeat(5, 1fr);
 }
@@ -141,7 +165,7 @@ button:focus{
   margin-left: auto;
   margin-right: auto;
   height: auto;
-  border: inherit;
+  border: 0.2vw solid #F3F3F3;
   background-color: #35906D;
 }
 
@@ -156,6 +180,7 @@ button:focus{
   height: auto;
   padding-left: 0.5vw;
   padding-right: 0.5vw;
+  padding-bottom: 1vh;
   color: white;
 }
 
@@ -181,14 +206,58 @@ button:focus{
 .more-shows{
   all: unset;
   cursor: pointer;
-  margin-top: 3vh;
-  width: 10vw;
-  height: 5vh;
+  margin-top: 4vh;
+  margin-bottom: 4vh;
+  max-width: 100%;
+  height: auto;
+  padding: 1.5vh 2vw 1.5vh 2vw;
   text-align: center;
   color: white;
   background-color: #7D3DA4;
-  border-radius: 20px 20px 20px 20px;
+  border-radius: 30px 30px 30px 30px;
   font-size: large;
+}
+
+.more-shows:hover{
+  background-color: #5e2e7b;
+}
+
+.full-sch-table{
+  width: 100%;
+  background-color: #cfe8df;
+}
+
+.full-sch-header{
+  padding: 0.5vh 0.5vw 0.5vh 0.5vw;
+  text-align: left;
+  font-size: larger;
+  background-color: #3da47d;
+  color: white;
+}
+
+.full-sch-data{
+  padding: 0.5vh 1.5vw 0.5vh 1.5vw;
+  color: #0f291f;
+}
+
+.full-sch-show-name{
+  all: unset;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.full-sch-show-name:hover{
+  text-decoration: underline;
+}
+
+.full-sch-ep-name{
+  all: unset; 
+  cursor: pointer;
+  font-size: small;
+}
+
+.full-sch-ep-name:hover{
+  text-decoration: underline;
 }
 
 .Search{
@@ -209,4 +278,33 @@ button:focus{
 
 .day{
   border: 1px solid black;
+}
+
+@media only screen and (max-width: 768px) {
+  .Home{
+    padding: 2vh 0 5vh 0;
+    margin: 0 3vw 0 3vw;
+  }
+
+  .todays-premieres{
+    all: unset;
+  }
+
+  .today-episode-cnt{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(1, 1fr);
+  }
+
+  .today-episode-img{
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .today-ep-info-cnt{
+    padding-left: 2vw;
+    grid-column: 2/4;
+    grid-row: 1;
+  }
+
 }

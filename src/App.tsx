@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef} from 'react';
+import React, { useEffect, useState, useRef, useLayoutEffect} from 'react';
 import './App.css';
 
 function Banner(props: BannerProps){
@@ -30,6 +30,46 @@ function Banner(props: BannerProps){
 }
 
 function Navigation(props: {onClick:(i:number)=>void}){
+
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [navExpanded, setNavExpanded] = useState(false);
+
+  function resizeWindow(){
+    setWindowWidth(window.innerWidth);
+  }
+
+  useLayoutEffect(() => {
+    window.addEventListener("resize", resizeWindow);
+    return () => window.removeEventListener("resize", resizeWindow);
+  }, []);
+
+  function renderByWidth(){
+    if (windowWidth <= 768){
+      return (
+        <>
+          <button className="menu-btn" onClick={() => setNavExpanded(!navExpanded)}>Menu</button>
+          <div className={navExpanded ? "nav-menu expanded" : "nav-menu"}>
+            <ul>
+              <li>
+                <button className="nav-menu-btn" onClick={() => props.onClick(2)}>Shows</button>
+              </li>
+              <li>
+                <button className="nav-menu-btn" onClick={() => props.onClick(3)}>Calendar</button>
+              </li>
+            </ul>
+          </div>
+        </>
+      );
+    }else{
+      return (
+        <>
+          <button className="nav-btn" onClick={() => props.onClick(2)}>Shows</button>
+          <button className="nav-btn" onClick={() => props.onClick(3)}>Calendar</button>
+        </>
+      )
+    }
+  }
+
   return(
     <div className="Navigation">
       <button className="nav-btn nav-home-btn" onClick={() => props.onClick(0)}>
@@ -40,10 +80,9 @@ function Navigation(props: {onClick:(i:number)=>void}){
           <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
         </svg>
       </button>
-      <button className="nav-btn" onClick={() => props.onClick(2)}>Shows</button>
-      <button className="nav-btn" onClick={() => props.onClick(3)}>Calendar</button>
+      {renderByWidth()}
     </div>
-  )
+    );
 }
 
 function Header(props: BannerProps){
@@ -67,6 +106,7 @@ function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number)=>voi
     }
     airdate: string;
     airtime: string;
+    name: string;
   }
 
   const [todaySchedule, setTodaySchedule] = useState<Array<Episode>>([]);
@@ -132,18 +172,28 @@ function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number)=>voi
       <>
         {airtimesArray.map((time, i) => {
           return(
-            <div>
-              <h3>{time}</h3>
+            <table className="full-sch-table">
+              <tr>
+                <th className="full-sch-header">{time}</th>
+              </tr>
               {ep.map((episode, j) => {
                 if (episode.airtime === time){
                   return (
-                    <>
-                      {episode.show.name}<br/>
-                    </>
+                    <tr>
+                      <td className="full-sch-data">
+                        <button className="full-sch-show-name">
+                          {episode.show.name}
+                        </button>
+                        <br/>
+                        <button className="full-sch-ep-name">
+                          {episode.name}
+                        </button>
+                      </td>
+                    </tr>
                   )
                 }
               })}
-            </div>
+            </table>
           )
         })}
       </>
@@ -172,10 +222,10 @@ function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number)=>voi
           </div>
         )
       })}
-      <p><button className="more-shows" onClick={() => props.moreShows()}>More shows &nbsp; &gt;&gt;</button></p>
     </div>
+    <button className="more-shows" onClick={() => props.moreShows()}>More shows &nbsp;&gt;&gt;</button>
     <div className="today-full">
-      <h2>Full schedule for today</h2>
+      <h2 className="today-header">Full schedule for today</h2>
       {fullTodaySchedule && fullTodaySchedule.length>0 && renderFullSch(fullTodaySchedule)}
     </div>
     </>
