@@ -13,6 +13,7 @@ function Banner(props: BannerProps){
         <input 
           className="search-bar" 
           type="search" 
+          placeholder="Search shows..."
           value={props.searchValue} 
           onChange={(e) => props.onChange(e)}
           onKeyDown={(e) => props.onKeyDown(e)}
@@ -38,6 +39,11 @@ function Navigation(props: {onClick:(i:number)=>void}){
     setWindowWidth(window.innerWidth);
   }
 
+  function handleNavClick(i: number){
+    setNavExpanded(false);
+    props.onClick(i);
+  }
+
   useLayoutEffect(() => {
     window.addEventListener("resize", resizeWindow);
     return () => window.removeEventListener("resize", resizeWindow);
@@ -47,14 +53,22 @@ function Navigation(props: {onClick:(i:number)=>void}){
     if (windowWidth <= 768){
       return (
         <>
-          <button className="menu-btn" onClick={() => setNavExpanded(!navExpanded)}>Menu</button>
+          <button className="menu-btn nav-btn" onClick={() => setNavExpanded(!navExpanded)}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-menu-2" viewBox="0 0 24 24" strokeWidth="1.5" stroke="#ffffff" fill="none" strokeLinecap="round" strokeLinejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <line x1="4" y1="6" x2="20" y2="6" />
+              <line x1="4" y1="12" x2="20" y2="12" />
+              <line x1="4" y1="18" x2="20" y2="18" />
+            </svg>
+            <p className="menu-btn-text">Menu</p>
+          </button>
           <div className={navExpanded ? "nav-menu expanded" : "nav-menu"}>
             <ul>
               <li>
-                <button className="nav-menu-btn" onClick={() => props.onClick(2)}>Shows</button>
+                <button className="nav-menu-btn nav-btn" onClick={() => handleNavClick(2)}>Shows</button>
               </li>
               <li>
-                <button className="nav-menu-btn" onClick={() => props.onClick(3)}>Calendar</button>
+                <button className="nav-menu-btn nav-btn" onClick={() => handleNavClick(3)}>Calendar</button>
               </li>
             </ul>
           </div>
@@ -279,36 +293,113 @@ function Search(props: {toSearch: string}){
 
 function Filter(props: FilterProps){
 
-  return (
-    <div className="filter-bar">
-      <select value={props.genre} onChange={(e) => props.onGenreChange(e)}>
-        {genres.map((item) => {
-          return <option value={item.value}>{item.value}</option>
-        })}
-      </select>
-      <select value={props.type} onChange={(e) => props.onTypeChange(e)}>
-        {types.map((item) => {
-          return <option value={item.value}>{item.value}</option>
-        })}
-      </select>
-      <select value={props.status} onChange={(e) => props.onStatusChange(e)}>
-        {statuses.map((item) => {
-          return <option value={item.value}>{item.value}</option>
-        })}
-      </select>
-      <select value={props.language} onChange={(e) => props.onLanguageChange(e)}>
-        {languages.map((item) => {
-          return <option value={item.value}>{item.value}</option>
-        })}
-      </select>
-      <select value={props.country} onChange={(e) => props.onCountryChange(e)}>
-        {countries.map((item) => {
-          return <option value={item.value}>{item.value}</option>
-        })}
-      </select>
-      <button onClick={() => props.onClick()}>Filter</button>
-    </div>
-  );
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
+
+  function resizeWindow(){
+    setWindowWidth(window.innerWidth);
+  }
+
+  useLayoutEffect(() => {
+    window.addEventListener("resize", resizeWindow);
+    return () => window.removeEventListener("resize", resizeWindow);
+  }, []);
+
+  if (windowWidth <= 768){
+    return(
+      <>
+        <div className="expand-filters">
+          <button className="expand-filters-btn" onClick={() => setFiltersExpanded(!filtersExpanded)}>
+            Filters
+            <svg xmlns="http://www.w3.org/2000/svg" className={filtersExpanded ? "icon icon-tabler icon-tabler-chevron-down expanded" : "icon icon-tabler icon-tabler-chevron-down"} viewBox="0 0 24 24" strokeWidth="1.5" stroke="#000000" fill="none" strokeLinecap="round" strokeLinejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+        </div>
+        <div className={filtersExpanded ? "filter-list expanded" : "filter-list"}>
+          <ul>
+            <li>
+              <label className="filter-label" htmlFor="genre">Genre</label>
+              <select id="genre" value={props.genre} onChange={(e) => props.onGenreChange(e)}>
+                {genres.map((item) => {
+                  return <option value={item.value}>{item.value}</option>
+                })}
+              </select>
+            </li>
+            <li>
+              <label className="filter-label" htmlFor="type">Show Type</label>
+              <select id="type" value={props.type} onChange={(e) => props.onTypeChange(e)}>
+                {types.map((item) => {
+                  return <option value={item.value}>{item.value}</option>
+                })}
+              </select>
+            </li>
+            <li>
+              <label className="filter-label" htmlFor="status">Show Status</label>
+              <select id="status" value={props.status} onChange={(e) => props.onStatusChange(e)}>
+                {statuses.map((item) => {
+                  return <option value={item.value}>{item.value}</option>
+                })}
+              </select>
+            </li>
+            <li>
+              <label className="filter-label" htmlFor="language">Language</label>
+              <select id="language" value={props.language} onChange={(e) => props.onLanguageChange(e)}>
+                {languages.map((item) => {
+                  return <option value={item.value}>{item.value}</option>
+                })}
+              </select>
+            </li>
+            <li>
+              <label className="filter-label" htmlFor="country">Country</label>
+              <select id="country" value={props.country} onChange={(e) => props.onCountryChange(e)}>
+                {countries.map((item) => {
+                  return <option value={item.value}>{item.value}</option>
+                })}
+              </select>
+            </li>
+            <li>
+              <button className="apply-filters-btn" onClick={() => props.onClick()}>Filter</button>
+            </li>
+          </ul>
+        </div>
+      </>
+    )
+  }else{
+    return (
+      <div className="filter-bar">
+        <select value={props.genre} onChange={(e) => props.onGenreChange(e)}>
+          {genres.map((item) => {
+            return <option value={item.value}>{item.value}</option>
+          })}
+        </select>
+        <select value={props.type} onChange={(e) => props.onTypeChange(e)}>
+          {types.map((item) => {
+            return <option value={item.value}>{item.value}</option>
+          })}
+        </select>
+        <select value={props.status} onChange={(e) => props.onStatusChange(e)}>
+          {statuses.map((item) => {
+            return <option value={item.value}>{item.value}</option>
+          })}
+        </select>
+        <select value={props.language} onChange={(e) => props.onLanguageChange(e)}>
+          {languages.map((item) => {
+            return <option value={item.value}>{item.value}</option>
+          })}
+        </select>
+        <select value={props.country} onChange={(e) => props.onCountryChange(e)}>
+          {countries.map((item) => {
+            return <option value={item.value}>{item.value}</option>
+          })}
+        </select>
+        <button onClick={() => props.onClick()}>Filter</button>
+      </div>
+    );
+  }
+
+
 }
 
 function Pagination(props: {page: number, addButtons: number, onClick: (i: number)=>void}){
@@ -339,6 +430,10 @@ function Pagination(props: {page: number, addButtons: number, onClick: (i: numbe
 
   return(
     <div className="pagination-cnt">
+      <div className="pagination-prev-cnt">
+        <button className="pagination-prev-btn">prev</button>
+      </div>
+      <div className="pagination-btns-cnt">
       {Array(buttons).fill(null).map((item, i) => {
         if (currentPage<=5){
           return renderButton(i+1);
@@ -346,6 +441,10 @@ function Pagination(props: {page: number, addButtons: number, onClick: (i: numbe
           return renderButton((currentPage-4)+i);
         }
       })}
+      </div>
+      <div className="pagination-next-cnt">
+        <button className="pagination-next-btn">Next</button>
+      </div>
     </div>
   );
 }
@@ -425,17 +524,21 @@ function Shows(props: {}){
       )
     }else {
       return (
-        <div className="shows-main">
-          {showsToShow && showsToShow.length>0 && showsToShow.map((item: any) => {
-            return (
-              <div className="show-cnt">
-                <img src={item.image?.medium} alt="no image"/><br/>
-                {item.name}<br/>
-              </div>
-            );
-          })}
+        <>
+          <div className="shows-main">
+            {showsToShow && showsToShow.length>0 && showsToShow.map((item: any) => {
+              return (
+                <div className="show-cnt">
+                  <img className="show-img" src={item.image?.medium} alt="no image"/><br/>
+                  <div className="showlist-show-info-cnt">
+                    <button className="showlist-show-title-btn">{item.name}</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
           <Pagination page={showsPage} addButtons={buttons} onClick={(i) => handlePagination(i)}/>
-        </div>
+        </>
       )
     }
   }
@@ -543,7 +646,6 @@ function Shows(props: {}){
 
   return(
     <div className="Shows main">
-      {loader()}
       <Filter 
         genre={genre} 
         type={type}
@@ -558,6 +660,7 @@ function Shows(props: {}){
         onClick={() => updateFilters()}
       />
       <br/>
+      {loader()}
     </div>
   );
 }
@@ -747,7 +850,7 @@ function Calendar(props: {}){
 
 }
 
-function ShowInfo(props: {id: number}){
+function Info(props: {id: number}){
 
   const [show, setShow] = useState<any>();
 
@@ -766,6 +869,7 @@ function ShowInfo(props: {id: number}){
 
   useEffect(() => {
     getShowInfo();
+    console.log(show);
   },[]);
 
   if (show){
@@ -814,7 +918,7 @@ function Main(props: MainProps){
     case (stateList[3]) :
       return <Calendar/>;
     case(stateList[4]) :
-      return <ShowInfo id={props.ID}/>;
+      return <Info id={props.ID}/>;
     default:
       return <Home moreShows={() => props.moreShows()} details={(id) => props.details(id)}/>;
   }
@@ -823,7 +927,7 @@ function Main(props: MainProps){
 
 function App() {
 
-  const stateList: Array<string> = ["home", "search", "shows", "calendar", "showInfo"];
+  const stateList: Array<string> = ["home", "search", "shows", "calendar", "info"];
   const [mainState, setMainState] = useState(stateList[0]);
   const [searchValue, setSearchValue] = useState("");
   const [toSearch, setToSearch] = useState("");
