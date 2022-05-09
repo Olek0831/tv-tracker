@@ -115,6 +115,7 @@ function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number)=>voi
       rating: {
         average: number;
       }
+      id: number;
       name: string;
       type: string;
     }
@@ -162,7 +163,7 @@ function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number)=>voi
       let todayShowsByRating: Episode[] = [];
       
       scheduleSortedByRating.forEach((element: Episode) => {
-        if (element.show.rating.average > 0 && element.airdate === date && element.show.type === "Scripted" && element.airtime > "19:00"){
+        if (element.show.rating.average > 0 && element.airdate === date && element.airtime > "19:00"){
           todayShowsByRating.push(element);
         }
       });
@@ -195,7 +196,7 @@ function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number)=>voi
                   return (
                     <tr>
                       <td className="full-sch-data">
-                        <button className="full-sch-show-name">
+                        <button className="full-sch-show-name" onClick={() => props.details(episode.show.id)}>
                           {episode.show.name}
                         </button>
                         <br/>
@@ -300,8 +301,19 @@ function Filter(props: FilterProps){
     setWindowWidth(window.innerWidth);
   }
 
+  function onFilterClick(){
+    setFiltersExpanded(!filtersExpanded);
+    props.onClick();
+  }
+
+  function onClrClick(){
+    setFiltersExpanded(!filtersExpanded);
+    props.onClr();
+  }
+
   useLayoutEffect(() => {
     window.addEventListener("resize", resizeWindow);
+
     return () => window.removeEventListener("resize", resizeWindow);
   }, []);
 
@@ -360,7 +372,8 @@ function Filter(props: FilterProps){
               </select>
             </li>
             <li>
-              <button className="apply-filters-btn" onClick={() => props.onClick()}>Filter</button>
+              <button className="apply-filters-btn" onClick={() => onFilterClick()}>Filter</button>
+              <button className="clr-filters-btn apply-filters-btn" onClick={() => onClrClick()}>Clear All</button>
             </li>
           </ul>
         </div>
@@ -369,32 +382,52 @@ function Filter(props: FilterProps){
   }else{
     return (
       <div className="filter-bar">
-        <select value={props.genre} onChange={(e) => props.onGenreChange(e)}>
-          {genres.map((item) => {
-            return <option value={item.value}>{item.value}</option>
-          })}
-        </select>
-        <select value={props.type} onChange={(e) => props.onTypeChange(e)}>
-          {types.map((item) => {
-            return <option value={item.value}>{item.value}</option>
-          })}
-        </select>
-        <select value={props.status} onChange={(e) => props.onStatusChange(e)}>
-          {statuses.map((item) => {
-            return <option value={item.value}>{item.value}</option>
-          })}
-        </select>
-        <select value={props.language} onChange={(e) => props.onLanguageChange(e)}>
-          {languages.map((item) => {
-            return <option value={item.value}>{item.value}</option>
-          })}
-        </select>
-        <select value={props.country} onChange={(e) => props.onCountryChange(e)}>
-          {countries.map((item) => {
-            return <option value={item.value}>{item.value}</option>
-          })}
-        </select>
-        <button onClick={() => props.onClick()}>Filter</button>
+        <ul>
+          <li>
+            <label className="filter-label" htmlFor="genre">Genre</label>
+            <select id="genre" value={props.genre} onChange={(e) => props.onGenreChange(e)}>
+              {genres.map((item) => {
+                return <option value={item.value}>{item.value}</option>
+              })}
+              </select>
+          </li>
+          <li>
+            <label className="filter-label" htmlFor="type">Show Type</label>
+            <select id="type" value={props.type} onChange={(e) => props.onTypeChange(e)}>
+              {types.map((item) => {
+                return <option value={item.value}>{item.value}</option>
+                })}
+            </select>
+          </li>
+          <li>
+            <label className="filter-label" htmlFor="status">Show Status</label>
+            <select id="status" value={props.status} onChange={(e) => props.onStatusChange(e)}>
+              {statuses.map((item) => {
+                return <option value={item.value}>{item.value}</option>
+              })}
+            </select>
+          </li>
+          <li>
+            <label className="filter-label" htmlFor="language">Language</label>
+            <select id="language" value={props.language} onChange={(e) => props.onLanguageChange(e)}>
+              {languages.map((item) => {
+                return <option value={item.value}>{item.value}</option>
+              })}
+            </select>
+          </li>
+          <li>
+            <label className="filter-label" htmlFor="country">Country</label>
+            <select id="country" value={props.country} onChange={(e) => props.onCountryChange(e)}>
+              {countries.map((item) => {
+                return <option value={item.value}>{item.value}</option>
+              })}
+            </select>
+          </li>
+          <li>
+            <button className="apply-filters-btn" onClick={() => onFilterClick()}>Filter</button>
+            <button className="clr-filters-btn apply-filters-btn" onClick={() => onClrClick()}>Clear All</button>
+          </li>
+        </ul>
       </div>
     );
   }
@@ -402,7 +435,7 @@ function Filter(props: FilterProps){
 
 }
 
-function Pagination(props: {page: number, addButtons: number, onClick: (i: number)=>void}){
+function Pagination(props: {page: number, addButtons: number, onClick: (i: number)=>void, onPrev: ()=>void, onNext: ()=>void}){
 
   const currentPage: number = (props.page+1);
   let buttons: number;
@@ -422,7 +455,7 @@ function Pagination(props: {page: number, addButtons: number, onClick: (i: numbe
 
   function renderButton(i: number){
     if (i===currentPage){
-      return <button className="pagination-button-active">{i}</button>;
+      return <button className="pagination-button active">{i}</button>;
     }else{
       return <button className="pagination-button" onClick={() => props.onClick(i-1)}>{i}</button>;
     }
@@ -431,7 +464,12 @@ function Pagination(props: {page: number, addButtons: number, onClick: (i: numbe
   return(
     <div className="pagination-cnt">
       <div className="pagination-prev-cnt">
-        <button className="pagination-prev-btn">prev</button>
+        <button className="pagination-prev-btn" onClick={() => props.onPrev()}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-caret-left" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M18 15l-6 -6l-6 6h12" transform="rotate(270 12 12)" />
+          </svg>
+        </button>
       </div>
       <div className="pagination-btns-cnt">
       {Array(buttons).fill(null).map((item, i) => {
@@ -443,13 +481,48 @@ function Pagination(props: {page: number, addButtons: number, onClick: (i: numbe
       })}
       </div>
       <div className="pagination-next-cnt">
-        <button className="pagination-next-btn">Next</button>
+        <button className="pagination-next-btn" onClick={() => props.onNext()}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-caret-right" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M18 15l-6 -6l-6 6h12" transform="rotate(90 12 12)" />
+          </svg>
+        </button>
       </div>
     </div>
   );
 }
 
-function Shows(props: {}){
+function Loader(props: LoaderProps){
+  if (props.loading === true){
+    return (
+      <p>Loading...</p>
+    )
+  }else if(props.showsToShow.length === 0){
+    return (
+      <p>No matches</p>
+    )
+  }else {
+    return (
+      <>
+        <div className="shows-main">
+          {props.showsToShow && props.showsToShow.length>0 && props.showsToShow.map((item: any) => {
+            return (
+              <div className="show-cnt">
+                <img className="show-img" src={item.image?.medium} onClick={() => props.details(item.id)} alt="no image"/><br/>
+                <div className="showlist-show-info-cnt">
+                  <button className="showlist-show-title-btn" onClick={() => props.details(item.id)}>{item.name}</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <Pagination page={props.showsPage} addButtons={props.buttons} onClick={(i) => props.handlePagination(i)} onPrev={() => props.onPrev()} onNext={() => props.onNext()}/>
+      </>
+    )
+  }
+}
+
+function Shows(props: {details: (id: number)=>void}){
 
   const [showsPage, setShowsPage] = useState(0);
   const [showsToShow, setShowsToShow] = useState<Array<{}>>([]);
@@ -488,6 +561,20 @@ function Shows(props: {}){
     setShowsPage(0);
   }
 
+  function clearFilters(){
+    setLoading(true);
+    const filtersObj = {
+      genre: "",
+      type: "",
+      status: "",
+      language: "",
+      country: ""
+    }
+
+    setFilters(filtersObj);
+    setShowsPage(0);
+  }
+
   function handleGenre(e: React.ChangeEvent<HTMLSelectElement>){
     setGenre(e.target.value);
   }
@@ -513,34 +600,33 @@ function Shows(props: {}){
     setShowsPage(i);
   }
 
-  function loader(){
-    if (loading === true){
-      return (
-        <p>Loading...</p>
-      )
-    }else if(showsToShow.length === 0){
-      return (
-        <p>No matches</p>
-      )
-    }else {
-      return (
-        <>
-          <div className="shows-main">
-            {showsToShow && showsToShow.length>0 && showsToShow.map((item: any) => {
-              return (
-                <div className="show-cnt">
-                  <img className="show-img" src={item.image?.medium} alt="no image"/><br/>
-                  <div className="showlist-show-info-cnt">
-                    <button className="showlist-show-title-btn">{item.name}</button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <Pagination page={showsPage} addButtons={buttons} onClick={(i) => handlePagination(i)}/>
-        </>
-      )
+  function setPrevPage(showsPage: number){
+    if(showsPage === 0){
+      setLoading(false);
+      return showsPage;
+    }else{
+      return showsPage-1;
     }
+  }
+
+  function handlePrev(){
+    setLoading(true);
+    setShowsPage((showsPage) => setPrevPage(showsPage));
+  }
+
+
+function setNextPage(showsPage: number){
+  if(showsPage > 5 && buttons === 0){
+    setLoading(false);
+    return showsPage;
+  }else{
+    return showsPage+1;
+  }
+}
+
+  function handleNext(){
+    setLoading(true);
+    setShowsPage((showsPage) => setNextPage(showsPage));
   }
 
   function applyFilters({genres, type, status, language, country}: Filters){
@@ -658,9 +744,19 @@ function Shows(props: {}){
         onLanguageChange={(e) => handleLanguage(e)}
         onCountryChange={(e) => handleCountry(e)}
         onClick={() => updateFilters()}
+        onClr={() => clearFilters()}
       />
       <br/>
-      {loader()}
+      <Loader 
+        loading={loading}
+        showsToShow={showsToShow}
+        showsPage={showsPage} 
+        buttons={buttons}
+        handlePagination={(i) => handlePagination(i)}
+        onPrev={() => handlePrev()}
+        onNext={() => handleNext()}
+        details={(id) => props.details(id)}
+      />
     </div>
   );
 }
@@ -752,59 +848,67 @@ function Calendar(props: {}){
     setCurrentMonth(monthControl);
   }
 
-  async function getSchedule(){
+  async function getSchedule(isFetching: boolean){
     let scheduleList: Array<Array<{}>> = [];
     let dataArray: Array<{}> = [];
     let monthRaw = currentMonth;
+
+    if (isFetching){
     
-    for(let i = 0; i<daysArray.length; i++){
-      let day: string | number;
-      let month: string | number;
-      let year = currentYear
+      for(let i = 0; i<daysArray.length; i++){
+        let day: string | number;
+        let month: string | number;
+        let year = currentYear
 
-      if(monthRaw === 0){
-        month = 12;
-        year = year - 1;
-      }
-
-      if(daysArray[i] === 1){
-        monthRaw = monthRaw + 1;
-      }
-
-      if (monthRaw === 13){
-        month = 1;
-        year = year + 1;
-      }
-
-      if (monthRaw < 10){
-        month = "0"+monthRaw;
-      }else{
-        month = monthRaw;
-      }
-
-      if (daysArray[i]<10){
-        day = "0"+daysArray[i];
-      }else{
-        day = daysArray[i];
-      }
-
-      const date = year+"-"+month+"-"+day
-
-      const response = await fetch("https://api.tvmaze.com/schedule?date="+date);
-      const data = await response.json();
-      data.map((item: {airdate: string, show: {type: string}}) => {
-        if (item.show.type === "Scripted" && item.airdate === date){
-          dataArray.push(item);
+        if(monthRaw === 0){
+          month = 12;
+          year = year - 1;
         }
-      })
-      scheduleList[i] = dataArray;
-      dataArray = [];
+
+        if(daysArray[i] === 1){
+          monthRaw = monthRaw + 1;
+        }
+
+        if (monthRaw === 13){
+          month = 1;
+          year = year + 1;
+        }
+
+        if (monthRaw < 10){
+          month = "0"+monthRaw;
+        }else{
+          month = monthRaw;
+        }
+
+        if (daysArray[i]<10){
+          day = "0"+daysArray[i];
+        }else{
+          day = daysArray[i];
+        } 
+
+        const date = year+"-"+month+"-"+day
+
+        const response = await fetch("https://api.tvmaze.com/schedule?date="+date );
+        const data = await response.json();
+        data.map((item: {airdate: string, show: {type: string}}) => {
+          if (item.show.type === "Scripted" && item.airdate === date){
+            dataArray.push(item);
+          }
+        })
+        scheduleList[i] = dataArray;
+        dataArray = [];
+      }
     }
     setSchedule(scheduleList);
   }
 
   useEffect(() => {
-    getSchedule();
+    let isFetching = true;
+    getSchedule(isFetching);
+
+    return function cleanup(){
+      isFetching = false;
+    }
   }, [currentMonth]);
 
   return (
@@ -914,7 +1018,7 @@ function Main(props: MainProps){
     case (stateList[1]) :
       return <Search toSearch={props.toSearch}/>;
     case (stateList[2]) :
-      return <Shows/>;
+      return <Shows details={(id) => props.details(id)}/>;
     case (stateList[3]) :
       return <Calendar/>;
     case(stateList[4]) :
@@ -1005,7 +1109,19 @@ interface FilterProps {
   onStatusChange: (e: React.ChangeEvent<HTMLSelectElement>)=>void,
   onLanguageChange: (e: React.ChangeEvent<HTMLSelectElement>)=>void,
   onCountryChange: (e: React.ChangeEvent<HTMLSelectElement>)=>void,
-  onClick: ()=>void
+  onClick: ()=>void,
+  onClr: ()=>void
+}
+
+interface LoaderProps {
+  loading: boolean,
+  showsToShow: Array<{}>,
+  showsPage: number,
+  buttons: number,
+  handlePagination: (i: number)=>void,
+  onNext: ()=>void,
+  onPrev: ()=>void,
+  details: (id: number)=>void
 }
 
 interface Filters{

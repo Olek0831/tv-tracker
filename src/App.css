@@ -26,6 +26,7 @@ button:focus{
   display: grid;
   grid-template-columns: 100%;
   grid-template-rows: 4fr 1fr;
+  z-index: 2;
 }
 
 .Banner{
@@ -107,6 +108,7 @@ button:focus{
   align-items: center;
   height: 36px;
   position: relative;
+  z-index: 2;
 }
 
 .nav-btn{
@@ -117,6 +119,7 @@ button:focus{
   min-width: 6vw;
   margin: 1px;
   padding: 0 1vw 0 1vw;
+  
 }
 
 .nav-home-btn{
@@ -177,7 +180,6 @@ button:focus{
   min-height: 40px;
   height: 100%;
   font-size: larger;
-  z-index: 1;
   left: 0;
 }
 
@@ -309,6 +311,7 @@ button:focus{
 
 .expand-filters{
   position: sticky;
+  z-index: 1;
   top: 0;
   background-color: #9ed1be;
   height: 32px;
@@ -385,7 +388,14 @@ button:focus{
   background-color: #3da47d;
   color: white;
   border-radius: 20px 20px 20px 20px;
-  height: 30px;
+  height: 35px;
+  width: 100%;
+  margin-bottom: 2%;
+}
+
+.clr-filters-btn{
+  margin-top: 2%;
+  margin-bottom: 1%;
 }
 
 .apply-filters-btn:hover{
@@ -430,8 +440,8 @@ button:focus{
 }
 
 .pagination-cnt{
-  border: 1px solid black;
   height: 42px;
+  margin: 0 9px 0 9px;
   display: grid;
   grid-template-columns: 10% 80% 10%;
 }
@@ -442,17 +452,74 @@ button:focus{
   justify-content: center;
 }
 
+.pagination-prev-btn{
+  all: unset;
+  cursor: pointer;
+  background-color: #F3F3F3;
+}
+
+.pagination-prev-btn:hover{
+  background-color: #989898;
+}
+
 .pagination-btns-cnt{
-  border: 1px solid black;
+  max-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.pagination-button{
+  all: unset;
+  cursor: pointer;
+  background-color: #F3F3F3;
+  height: 100%;
+  width: 12%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: x-large;
+  font-weight: bold;
+}
+
+.pagination-button.active{
+  background-color: #3da47d;
+  color: white;
+}
+
+.pagination-button:hover{
+  background-color: #989898;
+  text-decoration: underline;
 }
 
 .pagination-next-cnt{
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.pagination-next-btn{
+  all: unset;
+  cursor: pointer;
+  background-color: #F3F3F3;
+}
+
+.pagination-next-btn:hover{
+  background-color: #989898;
+}
+
+.icon-tabler-caret-left{
+  width: 100%;
+  height: auto;
+  max-height: 42px;
+  transform: translate(0, 0.5vh);
+}
+
+.icon-tabler-caret-right{
+  width: 100%;
+  height: auto;
+  max-height: 42px;
+  transform: translate(0, 0.5vh);
 }
 
 .calendar-table{
@@ -472,7 +539,6 @@ button:focus{
 @media only screen and (min-width: 768px) {
 
   .Header{
-    border: 1px solid black;
     display: grid;
     grid-template-columns: 100%;
     grid-template-rows: 2fr 1fr;
@@ -535,6 +601,32 @@ button:focus{
 
   .today-ep-info-cnt{
     padding-left: 0.5vw;
+  }
+
+  .filter-bar{
+    float: right;
+    width: 20%;
+  }
+
+  .filter-bar ul{
+    list-style: none;
+    padding: 0;
+  }
+
+  .filter-bar li{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .shows-main{
+    float: right;
+    width: 80%;
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .pagination-cnt{
+    clear: both;
   }
 
 }
