@@ -522,8 +522,8 @@ button:focus{
   transform: translate(0, 0.5vh);
 }
 
-.calendar-table{
-  border: 1px solid black;
+.Calendar{
+  margin: 2vh 2vw 5vh 2vw;
 }
 
 .day{
@@ -617,6 +617,17 @@ button:focus{
     display: flex;
     flex-direction: column;
     justify-content: center;
+    margin-bottom: 10%;
+    margin-right: 5%;
+  }
+
+  .filter-bar select{
+    border: 1px solid black;
+    border-radius: 0;
+    width: 100%;
+    height: 30px;
+    background-color: #F3F3F3;
+    margin-top: 1%;
   }
 
   .shows-main{
@@ -627,6 +638,28 @@ button:focus{
 
   .pagination-cnt{
     clear: both;
+    width: 80%;
   }
 
+  .pagination-button{
+    font-size: large;
+    width: 7%;
+  }
+
+  .calendar-table{
+    border: 1px solid black;
+    display: table;
+  }
+  
+  .table-row{
+    display: table-row;
+  }
+  
+  .table-cell{
+    display: table-cell;
+  }
+  
+  .table-header{
+    display: table-cell;
+  }
 }

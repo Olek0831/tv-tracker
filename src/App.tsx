@@ -382,6 +382,7 @@ function Filter(props: FilterProps){
   }else{
     return (
       <div className="filter-bar">
+        <h2>Filters</h2>
         <ul>
           <li>
             <label className="filter-label" htmlFor="genre">Genre</label>
@@ -431,8 +432,6 @@ function Filter(props: FilterProps){
       </div>
     );
   }
-
-
 }
 
 function Pagination(props: {page: number, addButtons: number, onClick: (i: number)=>void, onPrev: ()=>void, onNext: ()=>void}){
@@ -602,7 +601,6 @@ function Shows(props: {details: (id: number)=>void}){
 
   function setPrevPage(showsPage: number){
     if(showsPage === 0){
-      setLoading(false);
       return showsPage;
     }else{
       return showsPage-1;
@@ -617,7 +615,6 @@ function Shows(props: {details: (id: number)=>void}){
 
 function setNextPage(showsPage: number){
   if(showsPage > 5 && buttons === 0){
-    setLoading(false);
     return showsPage;
   }else{
     return showsPage+1;
@@ -761,8 +758,8 @@ function setNextPage(showsPage: number){
   );
 }
 
-function Calendar(props: {}){
-
+function CalendarLoader(props: {loading: boolean, currentMonth: number, currentYear: number, daysArr: number[], schedule: Array<Array<{}>>, onPrev: () => void, onNext: () => void}){
+ 
   const months = [
     "January",
     "February",
@@ -788,11 +785,74 @@ function Calendar(props: {}){
     "Sunday"
   ];
 
+  let prevMonth = props.currentMonth - 1;
+  let nextMonth = props.currentMonth + 1;
+
+  if (prevMonth === - 1){
+    prevMonth = 11;
+  }
+
+  if (nextMonth === 12){
+    nextMonth = 0;
+  }
+ 
+  if (props.loading){
+    return (
+      <p>Loading...</p>
+    )
+  }else{
+    return(
+      <>
+      <h2>Monthly Calendar</h2>
+      <div className="month-cnt">
+        <div className="cal-prev-btn-cnt">
+          <button className="cal-prev-btn" onClick={() => props.onPrev()}>{months[prevMonth]}</button>
+        </div>
+        <div className="month">{months[props.currentMonth]} {props.currentYear}</div>
+        <div className="cal-next-btn-cnt">
+          <button className="cal-next-btn" onClick={() => props.onNext()}>{months[nextMonth]}</button>
+        </div>
+      </div>
+      <div className="calendar-table">
+        <div className="table-row">
+          {days.map((item) => {
+            return <div className="table-header day-name">{item}</div>;
+          })}
+        </div>
+        {Array(Math.floor((props.daysArr.length/7)+1)).fill(null).map((item, i) => {
+          return (
+            <div className="table-row">
+              {props.daysArr.slice(i*7, (i*7)+7).map((day, j) => {
+                return(
+                  <div className="table-cell day">
+                    {day}<br/>
+                    {props.schedule[j+(i*7)] && props.schedule.length>0 && props.schedule[j+(i*7)].map((show: any) => {
+                      return (
+                        <>
+                          {show.show.name} <br/>
+                        </>
+                      )
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          )
+        })}
+      </div>
+      </>
+    )
+  }
+}
+
+function Calendar(props: {}){
+
   const today = new Date();
 
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [schedule, setSchedule] = useState<Array<Array<{}>>>([[]]);
+  const [loading, setLoading] = useState(true);
 
   const firstOfMonth = new Date(currentYear, currentMonth, 1);
 
@@ -823,6 +883,7 @@ function Calendar(props: {}){
   }
 
   function handlePrev(){
+    setLoading(true);
     let monthControl = currentMonth;
     let yearControl = currentYear;
 
@@ -836,6 +897,7 @@ function Calendar(props: {}){
   }
 
   function handleNext(){
+    setLoading(true);
     let monthControl = currentMonth;
     let yearControl = currentYear;
 
@@ -852,17 +914,19 @@ function Calendar(props: {}){
     let scheduleList: Array<Array<{}>> = [];
     let dataArray: Array<{}> = [];
     let monthRaw = currentMonth;
+    let yearRaw = currentYear;
 
     if (isFetching){
     
       for(let i = 0; i<daysArray.length; i++){
         let day: string | number;
         let month: string | number;
-        let year = currentYear
+        let year: number;
+        
 
         if(monthRaw === 0){
-          month = 12;
-          year = year - 1;
+          monthRaw = 12;
+          yearRaw = yearRaw - 1;
         }
 
         if(daysArray[i] === 1){
@@ -870,8 +934,8 @@ function Calendar(props: {}){
         }
 
         if (monthRaw === 13){
-          month = 1;
-          year = year + 1;
+          monthRaw = 1;
+          yearRaw = yearRaw + 1;
         }
 
         if (monthRaw < 10){
@@ -886,10 +950,14 @@ function Calendar(props: {}){
           day = daysArray[i];
         } 
 
+        year = yearRaw;
+
         const date = year+"-"+month+"-"+day
 
-        const response = await fetch("https://api.tvmaze.com/schedule?date="+date );
+        const response = await fetch("https://api.tvmaze.com/schedule?date="+date);
         const data = await response.json();
+        console.log(data);
+        console.log(date);
         data.map((item: {airdate: string, show: {type: string}}) => {
           if (item.show.type === "Scripted" && item.airdate === date){
             dataArray.push(item);
@@ -900,6 +968,7 @@ function Calendar(props: {}){
       }
     }
     setSchedule(scheduleList);
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -913,42 +982,7 @@ function Calendar(props: {}){
 
   return (
     <div className="Calendar main">
-      <table className="calendar-table">
-        <tr>
-          <td>
-            <button onClick={() => handlePrev()}>Prev</button>
-          </td>
-          <th colSpan={5}>{months[currentMonth]} {currentYear}</th>
-          <td>
-            <button onClick={() => handleNext()}>Next</button>
-          </td>
-        </tr>
-        <tr>
-          {days.map((item) => {
-            return <th>{item}</th>;
-          })}
-        </tr>
-        {Array(Math.floor((daysArray.length/7)+1)).fill(null).map((item, i) => {
-          return (
-            <tr>
-              {daysArray.slice(i*7, (i*7)+7).map((day, j) => {
-                return(
-                  <td className="day">
-                    {day}<br/>
-                    {schedule[j+(i*7)] && schedule.length>0 && schedule[j+(i*7)].map((show: any) => {
-                      return (
-                        <>
-                          {show.show.name} <br/>
-                        </>
-                      )
-                    })}
-                  </td>
-                );
-              })}
-            </tr>
-          )
-        })}
-      </table>
+      <CalendarLoader loading = {loading} currentMonth={currentMonth} currentYear={currentYear} schedule={schedule} daysArr = {daysArray} onPrev={() => handlePrev()} onNext={() => handleNext()}/>
     </div>
   );
 
@@ -973,7 +1007,6 @@ function Info(props: {id: number}){
 
   useEffect(() => {
     getShowInfo();
-    console.log(show);
   },[]);
 
   if (show){
