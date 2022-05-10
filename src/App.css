@@ -526,6 +526,37 @@ button:focus{
   margin: 2vh 2vw 5vh 2vw;
 }
 
+.month-cnt{
+  border: 1px solid black;
+  display: grid;
+  grid-template-columns: 10% 80% 10%;
+}
+
+.cal-prev-btn-cnt{
+  grid-column: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.month{
+  grid-column: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cal-next-btn-cnt{
+  grid-column: 3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.day-names{
+  display: none;
+}
+
 .day{
   border: 1px solid black;
 }

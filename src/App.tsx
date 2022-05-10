@@ -814,7 +814,7 @@ function CalendarLoader(props: {loading: boolean, currentMonth: number, currentY
         </div>
       </div>
       <div className="calendar-table">
-        <div className="table-row">
+        <div className="table-row day-names">
           {days.map((item) => {
             return <div className="table-header day-name">{item}</div>;
           })}
@@ -825,7 +825,10 @@ function CalendarLoader(props: {loading: boolean, currentMonth: number, currentY
               {props.daysArr.slice(i*7, (i*7)+7).map((day, j) => {
                 return(
                   <div className="table-cell day">
-                    {day}<br/>
+                    <div className="day-number-cnt">
+                      {days[j]}, {day}
+                      <br/>
+                    </div>
                     {props.schedule[j+(i*7)] && props.schedule.length>0 && props.schedule[j+(i*7)].map((show: any) => {
                       return (
                         <>
