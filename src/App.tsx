@@ -500,7 +500,7 @@ function Loader(props: LoaderProps){
     return (
       <div className="loader">
         <div className="loading-animation"></div>
-        <p className="loading-text">Loading...</p>
+        <div className="loading-text">Loading...</div>
       </div>
     )
   }else if(props.showsToShow.length === 0){
@@ -849,9 +849,9 @@ function CalendarLoader(props: {loading: boolean, currentMonth: number, currentY
     return (
       <div className="loader">
         <div className="loading-animation"></div>
-        <p className="loading-text">Loading...</p>
+        <div className="loading-text">Loading...</div>
       </div>
-    )
+    );
   }else{
     return(
       <>
@@ -1025,7 +1025,7 @@ function Calendar(props: {details: (id: number) => void}){
 
   return (
     <div className="Calendar main">
-      <CalendarLoader loading = {true} currentMonth={currentMonth} currentYear={currentYear} schedule={schedule} daysArr = {daysArray} onPrev={() => handlePrev()} onNext={() => handleNext()} details={(id) => props.details(id)}/>
+      <CalendarLoader loading = {loading} currentMonth={currentMonth} currentYear={currentYear} schedule={schedule} daysArr = {daysArray} onPrev={() => handlePrev()} onNext={() => handleNext()} details={(id) => props.details(id)}/>
     </div>
   );
 
@@ -1082,7 +1082,7 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
     return (
       <div className="loader">
         <div className="loading-animation"></div>
-        <p className="loading-text">Loading...</p>
+        <div className="loading-text">Loading...</div>
       </div>
     );
   }
