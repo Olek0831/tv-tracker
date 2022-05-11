@@ -259,7 +259,7 @@ function Home(props: {moreShows: ()=>void, details: (id: number)=>void}){
 
 }
 
-function Search(props: {toSearch: string}){
+function Search(props: {toSearch: string, details: (id:number) => void}){
 
   const[searchResults, setSearchResults] = useState<Array<{}>>([]);
 
@@ -281,9 +281,13 @@ function Search(props: {toSearch: string}){
     <div className="Search main">
       {searchResults && searchResults.length>0 && searchResults.map((item: any) => {
         return (
-          <div className="search-episode-cnt">
-          <img src={item.show?.image?.medium} alt="no image"/><br/>
-          {item.show?.name}<br/>
+          <div className="show-cnt">
+            <img className="show-img" src={item.show.image.medium} onClick={() => props.details(item.show.id)} alt="no image"/>
+            <div className="showlist-show-info-cnt">
+              <button className="showlist-show-title-btn" onClick={() => props.details(item.show.id)}>
+                {item.show.name}
+              </button>  
+            </div>
           </div>
         )
       })}
@@ -494,7 +498,10 @@ function Pagination(props: {page: number, addButtons: number, onClick: (i: numbe
 function Loader(props: LoaderProps){
   if (props.loading === true){
     return (
-      <p>Loading...</p>
+      <div className="loader">
+        <div className="loading-animation"></div>
+        <p className="loading-text">Loading...</p>
+      </div>
     )
   }else if(props.showsToShow.length === 0){
     return (
@@ -507,7 +514,7 @@ function Loader(props: LoaderProps){
           {props.showsToShow && props.showsToShow.length>0 && props.showsToShow.map((item: any) => {
             return (
               <div className="show-cnt">
-                <img className="show-img" src={item.image?.medium} onClick={() => props.details(item.id)} alt="no image"/><br/>
+                <img className="show-img" src={item.image?.medium} onClick={() => props.details(item.id)} alt="no image"/>
                 <div className="showlist-show-info-cnt">
                   <button className="showlist-show-title-btn" onClick={() => props.details(item.id)}>{item.name}</button>
                 </div>
@@ -743,7 +750,6 @@ function setNextPage(showsPage: number){
         onClick={() => updateFilters()}
         onClr={() => clearFilters()}
       />
-      <br/>
       <Loader 
         loading={loading}
         showsToShow={showsToShow}
@@ -758,7 +764,50 @@ function setNextPage(showsPage: number){
   );
 }
 
-function CalendarLoader(props: {loading: boolean, currentMonth: number, currentYear: number, daysArr: number[], schedule: Array<Array<{}>>, onPrev: () => void, onNext: () => void}){
+function RenderDay(props: {day: number, i: number, j:number, days: string[], schedule: Array<Array<{}>>, details: (id: number) => void}){
+ 
+  const today = new Date();
+
+  let ordinal: string;
+
+  if ((props.day === 1) || (props.day === 21) || (props.day === 31)){
+    ordinal = "st";
+  }else if ((props.day === 2) || (props.day === 22)){
+    ordinal = "nd";
+  }else if((props.day === 3) || (props.day === 23)){
+    ordinal = "rd";
+  }else{
+    ordinal = "th";
+  }
+
+  return(
+    <div className={(today.getDate() === props.day) ? "table-cell day today" : "table-cell day"}>
+      <div className={(today.getDate() === props.day) ? "day-number-cnt today" : "day-number-cnt"}>
+        <div className="day-name-mobile">
+          {props.days[props.j]},&nbsp;
+        </div>
+        {props.day}{ordinal}
+        <br/>
+      </div>
+      {props.schedule[props.j+(props.i*7)] && props.schedule.length>0 && props.schedule[props.j+(props.i*7)].map((episode: any) => {
+        return (
+          <div className="cal-data">
+            <button className="cal-show-name-btn" onClick={() => props.details(episode.show.id)}>
+              {episode.show.name}
+            </button>
+            <br/>
+            <button className="cal-episode-name-btn">
+              {episode.name}
+            </button>
+            <br/>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function CalendarLoader(props: {loading: boolean, currentMonth: number, currentYear: number, daysArr: number[], schedule: Array<Array<{}>>, onPrev: () => void, onNext: () => void, details: (id: number) => void}){
  
   const months = [
     "January",
@@ -798,7 +847,10 @@ function CalendarLoader(props: {loading: boolean, currentMonth: number, currentY
  
   if (props.loading){
     return (
-      <p>Loading...</p>
+      <div className="loader">
+        <div className="loading-animation"></div>
+        <p className="loading-text">Loading...</p>
+      </div>
     )
   }else{
     return(
@@ -806,38 +858,28 @@ function CalendarLoader(props: {loading: boolean, currentMonth: number, currentY
       <h2>Monthly Calendar</h2>
       <div className="month-cnt">
         <div className="cal-prev-btn-cnt">
-          <button className="cal-prev-btn" onClick={() => props.onPrev()}>{months[prevMonth]}</button>
+          <button className="cal-prev-btn" onClick={() => props.onPrev()}>&laquo;&nbsp;{months[prevMonth]}</button>
         </div>
         <div className="month">{months[props.currentMonth]} {props.currentYear}</div>
         <div className="cal-next-btn-cnt">
-          <button className="cal-next-btn" onClick={() => props.onNext()}>{months[nextMonth]}</button>
+          <button className="cal-next-btn" onClick={() => props.onNext()}>{months[nextMonth]}&nbsp;&raquo;</button>
         </div>
       </div>
       <div className="calendar-table">
         <div className="table-row day-names">
           {days.map((item) => {
-            return <div className="table-header day-name">{item}</div>;
+            return (
+              <div className="table-header">
+                <div className="day-name-widescreen">{item}</div>
+              </div>
+            );
           })}
         </div>
         {Array(Math.floor((props.daysArr.length/7)+1)).fill(null).map((item, i) => {
           return (
             <div className="table-row">
               {props.daysArr.slice(i*7, (i*7)+7).map((day, j) => {
-                return(
-                  <div className="table-cell day">
-                    <div className="day-number-cnt">
-                      {days[j]}, {day}
-                      <br/>
-                    </div>
-                    {props.schedule[j+(i*7)] && props.schedule.length>0 && props.schedule[j+(i*7)].map((show: any) => {
-                      return (
-                        <>
-                          {show.show.name} <br/>
-                        </>
-                      )
-                    })}
-                  </div>
-                );
+                return <RenderDay day={day} i={i} j={j} days={days} schedule={props.schedule} details={(id) => props.details(id)}/>;
               })}
             </div>
           )
@@ -848,7 +890,7 @@ function CalendarLoader(props: {loading: boolean, currentMonth: number, currentY
   }
 }
 
-function Calendar(props: {}){
+function Calendar(props: {details: (id: number) => void}){
 
   const today = new Date();
 
@@ -959,8 +1001,6 @@ function Calendar(props: {}){
 
         const response = await fetch("https://api.tvmaze.com/schedule?date="+date);
         const data = await response.json();
-        console.log(data);
-        console.log(date);
         data.map((item: {airdate: string, show: {type: string}}) => {
           if (item.show.type === "Scripted" && item.airdate === date){
             dataArray.push(item);
@@ -985,13 +1025,13 @@ function Calendar(props: {}){
 
   return (
     <div className="Calendar main">
-      <CalendarLoader loading = {loading} currentMonth={currentMonth} currentYear={currentYear} schedule={schedule} daysArr = {daysArray} onPrev={() => handlePrev()} onNext={() => handleNext()}/>
+      <CalendarLoader loading = {true} currentMonth={currentMonth} currentYear={currentYear} schedule={schedule} daysArr = {daysArray} onPrev={() => handlePrev()} onNext={() => handleNext()} details={(id) => props.details(id)}/>
     </div>
   );
 
 }
 
-function Info(props: {id: number}){
+function Info(props: {id: number, season?: number, episodeID?: number}){
 
   const [show, setShow] = useState<any>();
 
@@ -1039,7 +1079,12 @@ function Info(props: {id: number}){
       </div>
     )
   }else{
-    return <div></div>
+    return (
+      <div className="loader">
+        <div className="loading-animation"></div>
+        <p className="loading-text">Loading...</p>
+      </div>
+    );
   }
 }
 
@@ -1052,11 +1097,11 @@ function Main(props: MainProps){
     case (stateList[0]) :
       return <Home moreShows={() => props.moreShows()} details={(id) => props.details(id)}/>;
     case (stateList[1]) :
-      return <Search toSearch={props.toSearch}/>;
+      return <Search toSearch={props.toSearch} details={(id) => props.details(id)}/>;
     case (stateList[2]) :
       return <Shows details={(id) => props.details(id)}/>;
     case (stateList[3]) :
-      return <Calendar/>;
+      return <Calendar details={(id) => props.details(id)}/>;
     case(stateList[4]) :
       return <Info id={props.ID}/>;
     default:
