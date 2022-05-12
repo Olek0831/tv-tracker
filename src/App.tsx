@@ -1031,6 +1031,89 @@ function Calendar(props: {details: (id: number) => void}){
 
 }
 
+function ShowInfo(props: {show: any}){
+
+  let genres;
+
+  if (props.show.genres.length === 0){
+    genres = "";
+  }else{
+    genres = <li>
+                <b>Genres:</b> {props.show.genres.map((item: any, i: number) => {
+
+                  if (i === (props.show.genres.length-1)){
+                    return (
+                      <>
+                        {item}
+                      </>
+                    );
+                  }else{
+                    return (
+                      <>
+                        {item} |&nbsp;
+                      </>
+                    );
+                  }
+                })}
+              </li>
+  }
+
+  return (
+    <div className="show-info main">
+      <h2>{props.show.name}</h2>
+      <div className="info-cnt">
+        <img className="info-img" src={props.show.image.medium} alt="no image"/>
+        <div className="detailed-info-cnt">
+          <ul>
+            <li className="list-header">
+              Show Info
+            </li>
+            <li>
+              <b>Country:</b> {props.show.network.country.name}
+            </li>
+            <li>
+              <b>Network:</b> <a href={props.show.officialSite}>{props.show.network.name}</a>
+            </li>
+            <li>
+              <b>Status:</b> {props.show.status}
+            </li>
+            <li>
+              <b>Show Type:</b> {props.show.type}
+            </li>
+              {genres}
+            <li>
+              <b>Rating:</b> {props.show.rating.average}/10
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div className="show-description" dangerouslySetInnerHTML={{__html: props.show.summary}}/>
+      <h2>Episode List</h2>
+      <div className="episodes-cnt">
+        <div className="episode-name episodes-header">Episode Name</div>
+        <div className="episode-airdate episodes-header">Airdate</div>
+        {[...props.show._embedded.episodes].reverse().map((episode:any) => {
+          return (
+            <>
+              <div className="episode-name">
+                {episode.name}
+              </div>
+              <div className="episode-airdate">
+                {episode.airdate}
+              </div>
+            </>
+          )
+        })}
+      </div>
+    </div>
+  )
+
+}
+
+function EpisodeInfo(){
+  return <div></div>
+}
+
 function Info(props: {id: number, season?: number, episodeID?: number}){
 
   const [show, setShow] = useState<any>();
@@ -1045,7 +1128,6 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
     .then(response => {
       setShow(response);
     })
-    
   }
 
   useEffect(() => {
@@ -1053,31 +1135,11 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
   },[]);
 
   if (show){
-    return(
-      <div className="show-info main">
-        <h1>{show.name}</h1>
-        <img src={show.image.medium} alt="no image"/><br/>
-        {show.genres.map((item:any)=> {
-          return (
-            <>
-              {item}<br/>
-            </>
-          )
-        })}
-        {show.officialSite}<br/>
-        {show.rating.average}
-        <div dangerouslySetInnerHTML={{__html: show.summary}}/>
-        <div>
-          {[...show._embedded.episodes].reverse().map((episode:any) => {
-            return (
-              <>
-                {episode.name} | {episode.airdate}<br/>
-              </>
-            )
-          })}
-        </div>
-      </div>
-    )
+    if(props.season && props.episodeID){
+      return <EpisodeInfo/>;
+    }else{
+      return <ShowInfo show={show}/>;
+    }
   }else{
     return (
       <div className="loader">

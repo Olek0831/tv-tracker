@@ -643,6 +643,67 @@ button:focus{
   margin: 2vh 2vw 5vh 2vw;
 }
 
+.info-cnt{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.info-img{
+  grid-column: 1;
+  max-width: 100%;
+  height: auto;
+}
+
+.detailed-info-cnt{
+  grid-column: 2/4;
+  padding-left: 5%;
+}
+
+.detailed-info-cnt ul{
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-top: 1%;
+}
+
+.list-header{
+  font-size: larger;
+}
+
+.detailed-info-cnt li{
+  padding-bottom: 2%;
+}
+
+.episodes-cnt{
+  width: 100%;
+  display: grid;
+  grid-template-columns: 80% 20%;
+  border: 1px solid #b3b3b3;
+  padding: 1px;
+  padding-bottom: 0;
+}
+
+.episode-name{
+  border: 1px solid #b3b3b3;
+  grid-column: 1;
+  margin-bottom: 1px;
+  padding: 1px;
+  padding-left: 1%;
+}
+
+.episode-airdate{
+  border: 1px solid #b3b3b3;
+  grid-column: 2;
+  margin-left: 1px;
+  margin-bottom: 1px;
+  display: flex;
+  justify-content: center;
+}
+
+.episodes-header{
+  font-weight: bold;
+}
+
 .loader{
   padding-top: 15%;
   display: flex;
@@ -844,5 +905,23 @@ button:focus{
 
   .cal-episode-name-btn{
     font-size: smaller;
+  }
+
+  .info-cnt{
+    display: block;
+  }
+
+  .info-img{
+    float: left;
+  }
+
+  .detailed-info-cnt{
+    padding-left: 2%;
+    float: left;
+  }
+
+  .show-description{
+    padding-top: 2%;
+    clear: both;
   }
 }
