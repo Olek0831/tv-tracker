@@ -108,7 +108,7 @@ function Header(props: BannerProps){
   );
 }
 
-function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number)=>void}){
+function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number, season?: number, episodeID?: number)=>void}){
 
   interface Episode {
     show: {
@@ -119,6 +119,8 @@ function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number)=>voi
       name: string;
       type: string;
     }
+    season: number,
+    number: number,
     airdate: string;
     airtime: string;
     name: string;
@@ -200,7 +202,7 @@ function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number)=>voi
                           {episode.show.name}
                         </button>
                         <br/>
-                        <button className="full-sch-ep-name">
+                        <button className="full-sch-ep-name" onClick={() => props.details(episode.show.id, episode.season, episode.number)}>
                           {episode.name}
                         </button>
                       </td>
@@ -230,7 +232,7 @@ function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number)=>voi
             <img className="today-episode-img" src={item.show.image.medium} onClick={() => props.details(item.show.id)} alt=""/><br/>
             <div className="today-ep-info-cnt">
               <button className="today-title show-title" onClick={() => props.details(item.show.id)}>{item.show.name}</button><br/>
-              <button className="today-title ep-title">{item.name}</button><br/>
+              <button className="today-title ep-title" onClick={() => props.details(item.show.id, item.season, item.number)}>{item.name}</button><br/>
               {item.airtime}<br/>
               {item.show.rating.average}<br/>
             </div>
@@ -249,11 +251,11 @@ function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number)=>voi
 
 }
 
-function Home(props: {moreShows: ()=>void, details: (id: number)=>void}){
+function Home(props: {moreShows: ()=>void, details: (id: number, season?: number, episodeID?: number)=>void}){
 
    return(
     <div className="Home main">
-      <TodaysPremieres moreShows={() => props.moreShows()} details={(id) => props.details(id)}/>
+      <TodaysPremieres moreShows={() => props.moreShows()} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>
     </div>
   )
 
@@ -764,7 +766,7 @@ function setNextPage(showsPage: number){
   );
 }
 
-function RenderDay(props: {day: number, i: number, j:number, days: string[], schedule: Array<Array<{}>>, details: (id: number) => void}){
+function RenderDay(props: {day: number, i: number, j:number, days: string[], schedule: Array<Array<{}>>, details: (id: number, season?: number, episodeID?: number) => void}){
  
   const today = new Date();
 
@@ -796,7 +798,7 @@ function RenderDay(props: {day: number, i: number, j:number, days: string[], sch
               {episode.show.name}
             </button>
             <br/>
-            <button className="cal-episode-name-btn">
+            <button className="cal-episode-name-btn" onClick={() => props.details(episode.show.id, episode.season, episode.number)}>
               {episode.name}
             </button>
             <br/>
@@ -807,7 +809,7 @@ function RenderDay(props: {day: number, i: number, j:number, days: string[], sch
   )
 }
 
-function CalendarLoader(props: {loading: boolean, currentMonth: number, currentYear: number, daysArr: number[], schedule: Array<Array<{}>>, onPrev: () => void, onNext: () => void, details: (id: number) => void}){
+function CalendarLoader(props: {loading: boolean, currentMonth: number, currentYear: number, daysArr: number[], schedule: Array<Array<{}>>, onPrev: () => void, onNext: () => void, details: (id: number, season?: number, episodeID?: number) => void}){
  
   const months = [
     "January",
@@ -879,7 +881,7 @@ function CalendarLoader(props: {loading: boolean, currentMonth: number, currentY
           return (
             <div className="table-row">
               {props.daysArr.slice(i*7, (i*7)+7).map((day, j) => {
-                return <RenderDay day={day} i={i} j={j} days={days} schedule={props.schedule} details={(id) => props.details(id)}/>;
+                return <RenderDay day={day} i={i} j={j} days={days} schedule={props.schedule} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>;
               })}
             </div>
           )
@@ -890,7 +892,7 @@ function CalendarLoader(props: {loading: boolean, currentMonth: number, currentY
   }
 }
 
-function Calendar(props: {details: (id: number) => void}){
+function Calendar(props: {details: (id: number, season?: number, episodeID?: number) => void}){
 
   const today = new Date();
 
@@ -1025,23 +1027,47 @@ function Calendar(props: {details: (id: number) => void}){
 
   return (
     <div className="Calendar main">
-      <CalendarLoader loading = {loading} currentMonth={currentMonth} currentYear={currentYear} schedule={schedule} daysArr = {daysArray} onPrev={() => handlePrev()} onNext={() => handleNext()} details={(id) => props.details(id)}/>
+      <CalendarLoader loading = {loading} currentMonth={currentMonth} currentYear={currentYear} schedule={schedule} daysArr = {daysArray} onPrev={() => handlePrev()} onNext={() => handleNext()} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>
     </div>
   );
 
 }
 
-function ShowInfo(props: {show: any}){
+function EpisodeTable(props: {episodes: Array<{}>, onClick:(season: number, episodeID: number)=>void}){
+  return (
+    <>
+    <h2>Episode List</h2>
+      <div className="episodes-cnt">
+        <div className="episode-name episodes-header">Episode Name</div>
+        <div className="episode-airdate episodes-header">Airdate</div>
+        {[...props.episodes].reverse().map((episode:any) => {
+          return (
+            <>
+              <div className="episode-name">
+                <button className="episode-name-btn" onClick={() => props.onClick(episode.season, episode.number)}>
+                  {episode.name}
+                </button>
+              </div>
+              <div className="episode-airdate">
+                {episode.airdate}
+              </div>
+            </>
+          )
+        })}
+      </div>
+    </>
+  )
+}
+
+function DetailList(props: {info: any}){
 
   let genres;
 
-  if (props.show.genres.length === 0){
-    genres = "";
-  }else{
+  if ((props.info.genres) && (props.info.genres.length)){
     genres = <li>
-                <b>Genres:</b> {props.show.genres.map((item: any, i: number) => {
+                <b>Genres:</b> {props.info.genres.map((item: any, i: number) => {
 
-                  if (i === (props.show.genres.length-1)){
+                  if (i === (props.info.genres.length-1)){
                     return (
                       <>
                         {item}
@@ -1056,67 +1082,39 @@ function ShowInfo(props: {show: any}){
                   }
                 })}
               </li>
+  }else{
+    genres = "";
   }
 
   return (
-    <div className="show-info main">
-      <h2>{props.show.name}</h2>
-      <div className="info-cnt">
-        <img className="info-img" src={props.show.image.medium} alt="no image"/>
-        <div className="detailed-info-cnt">
-          <ul>
-            <li className="list-header">
-              Show Info
-            </li>
-            <li>
-              <b>Country:</b> {props.show.network.country.name}
-            </li>
-            <li>
-              <b>Network:</b> <a href={props.show.officialSite}>{props.show.network.name}</a>
-            </li>
-            <li>
-              <b>Status:</b> {props.show.status}
-            </li>
-            <li>
-              <b>Show Type:</b> {props.show.type}
-            </li>
-              {genres}
-            <li>
-              <b>Rating:</b> {props.show.rating.average}/10
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div className="show-description" dangerouslySetInnerHTML={{__html: props.show.summary}}/>
-      <h2>Episode List</h2>
-      <div className="episodes-cnt">
-        <div className="episode-name episodes-header">Episode Name</div>
-        <div className="episode-airdate episodes-header">Airdate</div>
-        {[...props.show._embedded.episodes].reverse().map((episode:any) => {
-          return (
-            <>
-              <div className="episode-name">
-                {episode.name}
-              </div>
-              <div className="episode-airdate">
-                {episode.airdate}
-              </div>
-            </>
-          )
-        })}
+    <>
+    {props.info.name}
+    <div className="info-cnt">
+      {props.info.image}
+      <div className="detailed-info-cnt">
+        <ul>
+          <li className="list-header">
+            {props.info.header}
+          </li>
+          {props.info.country}
+          {props.info.network}
+          {props.info.statusOrNumber}
+          {props.info.typeOrAirdate}
+          {props.info.genres ? genres : props.info.airtime}
+          {props.info.ratingOrRuntime}
+        </ul>
       </div>
     </div>
+    {props.info.description}
+    </>
   )
-
-}
-
-function EpisodeInfo(){
-  return <div></div>
 }
 
 function Info(props: {id: number, season?: number, episodeID?: number}){
 
   const [show, setShow] = useState<any>();
+  const [season, setSeason] = useState(props.season);
+  const [episodeID, setEpisodeID] = useState(props.episodeID);
 
   function getShowInfo(){
     fetch("https://api.tvmaze.com/shows/"+props.id+"?embed=episodes")
@@ -1134,12 +1132,58 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
     getShowInfo();
   },[]);
 
+  function handleTableClick(season: number, episodeID: number){
+    setSeason(season);
+    setEpisodeID(episodeID);
+  }
+
   if (show){
-    if(props.season && props.episodeID){
-      return <EpisodeInfo/>;
-    }else{
-      return <ShowInfo show={show}/>;
+
+    const episodes = show._embedded.episodes;
+    let renderTable;
+    let renderInfo;
+
+    if ((season) && (episodeID)){
+      episodes.forEach((episode: any) => {
+        if ((episode.season === season) && (episode.number === episodeID)){
+          renderInfo = {
+            name: <h4>{episode.name}</h4>,
+            image: <img className="info-img" src={episode.image?.medium} alt="no image"/>,
+            header: "Episode Info",
+            country: <li><b>Country:</b> {show.network.country.name}</li>,
+            network: <li><b>Network:</b> <a href={show.officialSite}>{show.network.name}</a></li>,
+            statusOrNumber: <li><b>Number:</b> Season {episode.season}, Episode {episode.number}</li>,
+            typeOrAirdate: <li><b>Airdate:</b> {episode.airdate}</li>,
+            airtime: <li><b>Airtime:</b> {episode.airtime}</li>,
+            ratingOrRuntime: <li><b>Runtime:</b> {episode.runtime}</li>,
+            description: <div className="show-description" dangerouslySetInnerHTML={{__html: episode.summary}}/>
+          };
+        }
+      });
+      renderTable = "";
+    } else{
+      renderInfo = {
+        name: "",
+        image: <img className="info-img" src={show.image.medium} alt="no image"/>,
+        header: "Show Info",
+        country: <li><b>Country:</b> {show.network.country.name}</li>,
+        network: <li><b>Network:</b> <a href={show.officialSite}>{show.network.name}</a></li>,
+        statusOrNumber: <li><b>Status:</b> {show.status}</li>,
+        typeOrAirdate: <li><b>Show Type:</b> {show.type}</li>,
+        genres: show.genres,
+        ratingOrRuntime: <li><b>Rating:</b> {show.rating.average}/10</li>,
+        description: <div className="show-description" dangerouslySetInnerHTML={{__html: show.summary}}/>
+      };
+      renderTable = <EpisodeTable episodes={episodes} onClick={(season, episodeID) => handleTableClick(season, episodeID)}/>;
     }
+
+    return (
+      <div className="show-info main">
+        <h2>{show.name}</h2>
+        <DetailList info = {renderInfo}/>
+        {renderTable}
+      </div> 
+    );
   }else{
     return (
       <div className="loader">
@@ -1157,17 +1201,17 @@ function Main(props: MainProps){
 
   switch (currentState) {
     case (stateList[0]) :
-      return <Home moreShows={() => props.moreShows()} details={(id) => props.details(id)}/>;
+      return <Home moreShows={() => props.moreShows()} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>;
     case (stateList[1]) :
       return <Search toSearch={props.toSearch} details={(id) => props.details(id)}/>;
     case (stateList[2]) :
       return <Shows details={(id) => props.details(id)}/>;
     case (stateList[3]) :
-      return <Calendar details={(id) => props.details(id)}/>;
+      return <Calendar details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>;
     case(stateList[4]) :
-      return <Info id={props.ID}/>;
+      return <Info id={props.ID} season={props.season} episodeID={props.episodeID}/>;
     default:
-      return <Home moreShows={() => props.moreShows()} details={(id) => props.details(id)}/>;
+      return <Home moreShows={() => props.moreShows()} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>;
   }
 
 }
@@ -1178,7 +1222,9 @@ function App() {
   const [mainState, setMainState] = useState(stateList[0]);
   const [searchValue, setSearchValue] = useState("");
   const [toSearch, setToSearch] = useState("");
-  const [showId, setShowID] = useState<number>(0);
+  const [showId, setShowID] = useState(0);
+  const [season, setSeason] = useState<number>();
+  const [episodeID, setEpisodeID] = useState<number>();
 
   function handleClick(i: number){
     setToSearch(searchValue);
@@ -1200,8 +1246,21 @@ function App() {
     setMainState(stateList[2]);
   }
 
-  function handleDetails(id: number){
+  function handleDetails(id: number, season?: number, episodeID?: number){
     setShowID(id);
+
+    if(season){
+      setSeason(season);
+    }else{
+      setSeason(undefined);
+    }
+
+    if(episodeID){
+      setEpisodeID(episodeID);
+    }else{
+      setEpisodeID(undefined);
+    }
+
     setMainState(stateList[4]);
   }
 
@@ -1219,7 +1278,9 @@ function App() {
         toSearch={toSearch} 
         moreShows={() => handleMoreShows()}
         ID={showId}
-        details={(id) => handleDetails(id)}
+        season={season}
+        episodeID={episodeID}
+        details={(id, season?, episodeID?) => handleDetails(id, season, episodeID)}
       />
     </div>
   );
@@ -1230,8 +1291,10 @@ interface MainProps {
   stateList: Array<string>, 
   toSearch: string, 
   moreShows: ()=>void,
-  ID: number
-  details:(id: number) => void
+  ID: number,
+  season?: number,
+  episodeID?: number,
+  details:(id: number, season?: number, episodeID?: number) => void
 }
 
 interface BannerProps {

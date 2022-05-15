@@ -15,6 +15,16 @@ button:focus{
   outline: #A47D3D solid 1px;
 }
 
+a{
+  text-decoration: none;
+  color: #35906d;
+}
+
+a:hover{
+  text-decoration: underline;
+  color: #3DA497;
+}
+
 #root{
   height: 100%;
   width: 100%;
@@ -691,6 +701,17 @@ button:focus{
   padding-left: 1%;
 }
 
+.episode-name-btn{
+  all: unset;
+  cursor: pointer;
+  color: #35906d;
+}
+
+.episode-name-btn:hover{
+  text-decoration: underline;
+  color: #3DA497;
+}
+
 .episode-airdate{
   border: 1px solid #b3b3b3;
   grid-column: 2;
@@ -905,6 +926,11 @@ button:focus{
 
   .cal-episode-name-btn{
     font-size: smaller;
+  }
+
+  .show-info{
+    margin-left: 10vw;
+    margin-right: 10vw;
   }
 
   .info-cnt{
