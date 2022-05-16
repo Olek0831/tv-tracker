@@ -232,6 +232,7 @@ a:hover{
   grid-column: 2/4;
   grid-row: 1;
   color: white;
+  display: grid;
 }
 
 .today-title{
@@ -691,6 +692,13 @@ a:hover{
   border: 1px solid #b3b3b3;
   padding: 1px;
   padding-bottom: 0;
+}
+
+.episode-row{
+  display: grid;
+  grid-template-columns: 80% 20%;
+  border: 1px solid #b3b3b3;
+  padding: 1px;
 }
 
 .episode-name{

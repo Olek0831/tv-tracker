@@ -27,10 +27,10 @@ function Banner(props: BannerProps){
         </button>
       </div>
     </div>
-  )
+  );
 }
 
-function Navigation(props: {onClick:(i:number)=>void}){
+function RenderMenuByWidth(props: {onClick:(i:number)=>void}){
 
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [navExpanded, setNavExpanded] = useState(false);
@@ -49,41 +49,42 @@ function Navigation(props: {onClick:(i:number)=>void}){
     return () => window.removeEventListener("resize", resizeWindow);
   }, []);
 
-  function renderByWidth(){
-    if (windowWidth <= 768){
-      return (
-        <>
-          <button className="menu-btn nav-btn" onClick={() => setNavExpanded(!navExpanded)}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-menu-2" viewBox="0 0 24 24" strokeWidth="1.5" stroke="#ffffff" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-              <line x1="4" y1="6" x2="20" y2="6" />
-              <line x1="4" y1="12" x2="20" y2="12" />
-              <line x1="4" y1="18" x2="20" y2="18" />
-            </svg>
-            <p className="menu-btn-text">Menu</p>
-          </button>
-          <div className={navExpanded ? "nav-menu expanded" : "nav-menu"}>
-            <ul>
-              <li>
-                <button className="nav-menu-btn nav-btn" onClick={() => handleNavClick(2)}>Shows</button>
-              </li>
-              <li>
-                <button className="nav-menu-btn nav-btn" onClick={() => handleNavClick(3)}>Calendar</button>
-              </li>
-            </ul>
-          </div>
-        </>
-      );
-    }else{
-      return (
-        <>
-          <button className="nav-btn" onClick={() => props.onClick(2)}>Shows</button>
-          <button className="nav-btn" onClick={() => props.onClick(3)}>Calendar</button>
-        </>
-      )
-    }
+  if (windowWidth <= 768){
+    return (
+      <>
+        <button className="menu-btn nav-btn" onClick={() => setNavExpanded(!navExpanded)}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-menu-2" viewBox="0 0 24 24" strokeWidth="1.5" stroke="#ffffff" fill="none" strokeLinecap="round" strokeLinejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <line x1="4" y1="6" x2="20" y2="6" />
+            <line x1="4" y1="12" x2="20" y2="12" />
+            <line x1="4" y1="18" x2="20" y2="18" />
+          </svg>
+          <p className="menu-btn-text">Menu</p>
+        </button>
+        <div className={navExpanded ? "nav-menu expanded" : "nav-menu"}>
+          <ul>
+            <li key={"shows"}>
+              <button className="nav-menu-btn nav-btn" onClick={() => handleNavClick(2)}>Shows</button>
+            </li>
+            <li key={"calendar"}>
+              <button className="nav-menu-btn nav-btn" onClick={() => handleNavClick(3)}>Calendar</button>
+            </li>
+          </ul>
+        </div>
+      </>
+    );
+  }else{
+    return (
+      <>
+        <button className="nav-btn" onClick={() => props.onClick(2)}>Shows</button>
+        <button className="nav-btn" onClick={() => props.onClick(3)}>Calendar</button>
+      </>
+    );
   }
+}
 
+function Navigation(props: {onClick:(i:number)=>void}){
+    
   return(
     <div className="Navigation">
       <button className="nav-btn nav-home-btn" onClick={() => props.onClick(0)}>
@@ -94,9 +95,9 @@ function Navigation(props: {onClick:(i:number)=>void}){
           <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
         </svg>
       </button>
-      {renderByWidth()}
+      <RenderMenuByWidth onClick={(i) => props.onClick(i)}/>
     </div>
-    );
+  );
 }
 
 function Header(props: BannerProps){
@@ -108,26 +109,94 @@ function Header(props: BannerProps){
   );
 }
 
-function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number, season?: number, episodeID?: number)=>void}){
+function FullSchedule(props: {ep: Array<EpisodeWithShow>, date: string, details: (id: number, season?: number, episodeID?: number)=>void}){
 
-  interface Episode {
-    show: {
-      rating: {
-        average: number;
-      }
-      id: number;
-      name: string;
-      type: string;
+  let airtimesArray: Array<string> = [];
+
+  props.ep.forEach((element: EpisodeWithShow) => {
+    if (!airtimesArray.includes(element.airtime) && element.airdate === props.date){
+      airtimesArray.push(element.airtime);
     }
-    season: number,
-    number: number,
-    airdate: string;
-    airtime: string;
-    name: string;
-  }
+  })
 
-  const [todaySchedule, setTodaySchedule] = useState<Array<Episode>>([]);
-  const [fullTodaySchedule, setFullTodaySchedule] = useState<Array<Episode>>([]);
+  airtimesArray.sort();
+
+  return(
+    <table className="full-sch-table">
+      {airtimesArray.map((time, i) => {
+        return(
+          <tbody key={time}>
+            <tr>
+              <th className="full-sch-header">{time}</th>
+            </tr>
+          {props.ep.map((episode: EpisodeWithShow, j) => {
+            if (episode.airtime === time){
+              return (
+                <tr key={episode.id.toString()}>
+                  <td className="full-sch-data">
+                    <button className="full-sch-show-name" onClick={() => props.details(episode.show.id)}>
+                      {episode.show.name}
+                    </button>
+                    <br/>
+                    <button className="full-sch-ep-name" onClick={() => props.details(episode.show.id, episode.season, episode.number)}>
+                      {episode.name}
+                    </button>
+                  </td>
+                </tr>
+              )
+            }
+          })}
+          </tbody>
+        );
+      })}
+    </table>  
+  );
+}
+
+function TodaysPremieres(props: {shows: Array<EpisodeWithShow>, moreShows: ()=>void, details: (id: number, season?: number, episodeID?: number)=>void}){
+
+  let imgSrc: string;
+
+  return(
+    <>
+    <h2 className="today-header">Best shows airing tonight</h2>
+    <div className="todays-premieres">
+      {props.shows && props.shows.length>0 && props.shows.map((item: EpisodeWithShow, i: number)=>{
+
+        if(item.show.image?.medium){
+          imgSrc = item.show.image.medium;
+        }else{
+          imgSrc = require(".//img/Placeholder.png");
+        }
+
+        return (
+          <div key={item.id.toString()} className="today-episode-cnt">
+            <img className="today-episode-img" src={imgSrc} onClick={() => props.details(item.show.id)} alt="Show Image"/><br/>
+            <div className="today-ep-info-cnt">
+              <button className="today-title show-title" onClick={() => props.details(item.show.id)}>{item.show.name}</button><br/>
+              <button className="today-title ep-title" onClick={() => props.details(item.show.id, item.season, item.number)}>{item.name}</button><br/>
+              <div className="today-ep-info">
+              Airtime: {item.airtime}<br/>
+              Rating: {item.show.rating.average}/10
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+    <button className="more-shows" onClick={() => props.moreShows()}>More shows &nbsp;&gt;&gt;</button>
+    </> 
+  );
+
+}
+
+function Home(props: {moreShows: ()=>void, details: (id: number, season?: number, episodeID?: number)=>void}){
+
+  const [todaySchedule, setTodaySchedule] = useState<Array<EpisodeWithShow>>([]);
+  const [fullTodaySchedule, setFullTodaySchedule] = useState<Array<EpisodeWithShow>>([]);
+
+  const controller = new AbortController();
+  const signal = controller.signal;
 
   const today = new Date();
   const monthRaw = (today.getMonth()+1);
@@ -152,19 +221,23 @@ function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number, seas
   const date = today.getFullYear()+'-'+month+'-'+day;
 
   const getTodaySchedule=()=>{
-    fetch("https://api.tvmaze.com/schedule?date="+date)
+    fetch("https://api.tvmaze.com/schedule?date="+date, {signal})
     .then(res => {
-      return res.json();
+      if(res.ok){
+        return res.json();
+      }else{
+        return Promise.reject(res.status);
+      }
     })
-    .then(schedule => {
+    .then((schedule: Array<EpisodeWithShow>) => {
       setFullTodaySchedule(schedule);
-      const scheduleSortedByRating = schedule.sort((a: Episode, b: Episode) => {
+      const scheduleSortedByRating = schedule.sort((a: EpisodeWithShow, b: EpisodeWithShow) => {
         return b.show.rating.average - a.show.rating.average;
       });
 
-      let todayShowsByRating: Episode[] = [];
+      let todayShowsByRating: EpisodeWithShow[] = [];
       
-      scheduleSortedByRating.forEach((element: Episode) => {
+      scheduleSortedByRating.forEach((element: EpisodeWithShow) => {
         if (element.show.rating.average > 0 && element.airdate === date && element.airtime > "19:00"){
           todayShowsByRating.push(element);
         }
@@ -173,118 +246,64 @@ function TodaysPremieres(props: {moreShows: ()=>void, details: (id: number, seas
     });
   }
 
-  function renderFullSch(ep: Array<Episode>){
-
-    let airtimesArray: Array<string> = [];
-
-    ep.forEach((element: Episode) => {
-      if (!airtimesArray.includes(element.airtime) && element.airdate === date){
-        airtimesArray.push(element.airtime);
-      }
-    })
-
-    airtimesArray.sort();
-
-    return(
-      <>
-        {airtimesArray.map((time, i) => {
-          return(
-            <table className="full-sch-table">
-              <tr>
-                <th className="full-sch-header">{time}</th>
-              </tr>
-              {ep.map((episode, j) => {
-                if (episode.airtime === time){
-                  return (
-                    <tr>
-                      <td className="full-sch-data">
-                        <button className="full-sch-show-name" onClick={() => props.details(episode.show.id)}>
-                          {episode.show.name}
-                        </button>
-                        <br/>
-                        <button className="full-sch-ep-name" onClick={() => props.details(episode.show.id, episode.season, episode.number)}>
-                          {episode.name}
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                }
-              })}
-            </table>
-          )
-        })}
-      </>
-    )
-  }
-
   useEffect(() => {
-    getTodaySchedule()
+    getTodaySchedule();
+
+    return function cleanup(){
+      controller.abort();
+    } 
   },[]);
 
   return(
-    
-    <>
-    <h2 className="today-header">Best shows airing tonight</h2>
-    <div className="todays-premieres">
-      {todaySchedule && todaySchedule.length>0 && todaySchedule.map((item: any, i: number)=>{
-        return (
-          <div className="today-episode-cnt">
-            <img className="today-episode-img" src={item.show.image.medium} onClick={() => props.details(item.show.id)} alt=""/><br/>
-            <div className="today-ep-info-cnt">
-              <button className="today-title show-title" onClick={() => props.details(item.show.id)}>{item.show.name}</button><br/>
-              <button className="today-title ep-title" onClick={() => props.details(item.show.id, item.season, item.number)}>{item.name}</button><br/>
-              {item.airtime}<br/>
-              {item.show.rating.average}<br/>
-            </div>
-          </div>
-        )
-      })}
-    </div>
-    <button className="more-shows" onClick={() => props.moreShows()}>More shows &nbsp;&gt;&gt;</button>
-    <div className="today-full">
-      <h2 className="today-header">Full schedule for today</h2>
-      {fullTodaySchedule && fullTodaySchedule.length>0 && renderFullSch(fullTodaySchedule)}
-    </div>
-    </>
-    
-  )
-
-}
-
-function Home(props: {moreShows: ()=>void, details: (id: number, season?: number, episodeID?: number)=>void}){
-
-   return(
     <div className="Home main">
-      <TodaysPremieres moreShows={() => props.moreShows()} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>
+      <TodaysPremieres shows={todaySchedule} moreShows={() => props.moreShows()} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>
+      <div className="today-full">
+        <h2 className="today-header">Full schedule for today</h2>
+        {fullTodaySchedule && fullTodaySchedule.length>0 && <FullSchedule ep={fullTodaySchedule} date={date} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>}
+      </div>
     </div>
-  )
-
+  );
 }
 
 function Search(props: {toSearch: string, details: (id:number) => void}){
 
-  const[searchResults, setSearchResults] = useState<Array<{}>>([]);
+  const[searchResults, setSearchResults] = useState<Array<SearchedShow>>([]);
+
+  const controller = new AbortController();
+  const signal = controller.signal;
+  let imgSrc: string;
 
   const getSearchResults=()=>{
-    fetch("https://api.tvmaze.com/search/shows?q="+props.toSearch)
+    fetch("https://api.tvmaze.com/search/shows?q="+props.toSearch, {signal})
     .then(res => {
       return res.json();
     })
-    .then(results => {
+    .then((results: Array<SearchedShow>) => {
       setSearchResults(results);
     });
   }
 
   useEffect(() => {
     getSearchResults()
+
+    return function cleanup(){
+      controller.abort();
+    }
   },[props.toSearch]);
 
   return (
     <div className="Search main">
-      {searchResults && searchResults.length>0 && searchResults.map((item: any) => {
+      {searchResults && searchResults.length>0 && searchResults.map((item: SearchedShow) => {
+
+        if(item.show.image?.medium){
+          imgSrc = item.show.image.medium;
+        }else{
+          imgSrc = require(".//img/Placeholder.png");
+        }
+
         return (
-          <div className="show-cnt">
-            <img className="show-img" src={item.show.image.medium} onClick={() => props.details(item.show.id)} alt="no image"/>
+          <div key={item.show.id} className="show-cnt">
+            <img className="show-img" src={imgSrc} onClick={() => props.details(item.show.id)} alt="Show Image"/>
             <div className="showlist-show-info-cnt">
               <button className="showlist-show-title-btn" onClick={() => props.details(item.show.id)}>
                 {item.show.name}
@@ -295,17 +314,11 @@ function Search(props: {toSearch: string, details: (id:number) => void}){
       })}
     </div>
   );
-
 }
 
-function Filter(props: FilterProps){
+function FilterBarMobile(props: FilterProps){
 
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
-
-  function resizeWindow(){
-    setWindowWidth(window.innerWidth);
-  }
 
   function onFilterClick(){
     setFiltersExpanded(!filtersExpanded);
@@ -317,100 +330,40 @@ function Filter(props: FilterProps){
     props.onClr();
   }
 
-  useLayoutEffect(() => {
-    window.addEventListener("resize", resizeWindow);
-
-    return () => window.removeEventListener("resize", resizeWindow);
-  }, []);
-
-  if (windowWidth <= 768){
-    return(
-      <>
-        <div className="expand-filters">
-          <button className="expand-filters-btn" onClick={() => setFiltersExpanded(!filtersExpanded)}>
-            Filters
-            <svg xmlns="http://www.w3.org/2000/svg" className={filtersExpanded ? "icon icon-tabler icon-tabler-chevron-down expanded" : "icon icon-tabler icon-tabler-chevron-down"} viewBox="0 0 24 24" strokeWidth="1.5" stroke="#000000" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
-        </div>
-        <div className={filtersExpanded ? "filter-list expanded" : "filter-list"}>
-          <ul>
-            <li>
-              <label className="filter-label" htmlFor="genre">Genre</label>
-              <select id="genre" value={props.genre} onChange={(e) => props.onGenreChange(e)}>
-                {genres.map((item) => {
-                  return <option value={item.value}>{item.value}</option>
-                })}
-              </select>
-            </li>
-            <li>
-              <label className="filter-label" htmlFor="type">Show Type</label>
-              <select id="type" value={props.type} onChange={(e) => props.onTypeChange(e)}>
-                {types.map((item) => {
-                  return <option value={item.value}>{item.value}</option>
-                })}
-              </select>
-            </li>
-            <li>
-              <label className="filter-label" htmlFor="status">Show Status</label>
-              <select id="status" value={props.status} onChange={(e) => props.onStatusChange(e)}>
-                {statuses.map((item) => {
-                  return <option value={item.value}>{item.value}</option>
-                })}
-              </select>
-            </li>
-            <li>
-              <label className="filter-label" htmlFor="language">Language</label>
-              <select id="language" value={props.language} onChange={(e) => props.onLanguageChange(e)}>
-                {languages.map((item) => {
-                  return <option value={item.value}>{item.value}</option>
-                })}
-              </select>
-            </li>
-            <li>
-              <label className="filter-label" htmlFor="country">Country</label>
-              <select id="country" value={props.country} onChange={(e) => props.onCountryChange(e)}>
-                {countries.map((item) => {
-                  return <option value={item.value}>{item.value}</option>
-                })}
-              </select>
-            </li>
-            <li>
-              <button className="apply-filters-btn" onClick={() => onFilterClick()}>Filter</button>
-              <button className="clr-filters-btn apply-filters-btn" onClick={() => onClrClick()}>Clear All</button>
-            </li>
-          </ul>
-        </div>
-      </>
-    )
-  }else{
-    return (
-      <div className="filter-bar">
-        <h2>Filters</h2>
+  return(
+    <>
+      <div className="expand-filters">
+        <button className="expand-filters-btn" onClick={() => setFiltersExpanded(!filtersExpanded)}>
+          Filters
+          <svg xmlns="http://www.w3.org/2000/svg" className={filtersExpanded ? "icon icon-tabler icon-tabler-chevron-down expanded" : "icon icon-tabler icon-tabler-chevron-down"} viewBox="0 0 24 24" strokeWidth="1.5" stroke="#000000" fill="none" strokeLinecap="round" strokeLinejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+      </div>
+      <div className={filtersExpanded ? "filter-list expanded" : "filter-list"}>
         <ul>
           <li>
             <label className="filter-label" htmlFor="genre">Genre</label>
             <select id="genre" value={props.genre} onChange={(e) => props.onGenreChange(e)}>
               {genres.map((item) => {
-                return <option value={item.value}>{item.value}</option>
+                return <option key={item.value} value={item.value}>{item.value}</option>
               })}
-              </select>
+            </select>
           </li>
           <li>
             <label className="filter-label" htmlFor="type">Show Type</label>
             <select id="type" value={props.type} onChange={(e) => props.onTypeChange(e)}>
               {types.map((item) => {
-                return <option value={item.value}>{item.value}</option>
-                })}
+                return <option key={item.value} value={item.value}>{item.value}</option>
+              })}
             </select>
           </li>
           <li>
             <label className="filter-label" htmlFor="status">Show Status</label>
             <select id="status" value={props.status} onChange={(e) => props.onStatusChange(e)}>
               {statuses.map((item) => {
-                return <option value={item.value}>{item.value}</option>
+                return <option key={item.value} value={item.value}>{item.value}</option>
               })}
             </select>
           </li>
@@ -418,7 +371,7 @@ function Filter(props: FilterProps){
             <label className="filter-label" htmlFor="language">Language</label>
             <select id="language" value={props.language} onChange={(e) => props.onLanguageChange(e)}>
               {languages.map((item) => {
-                return <option value={item.value}>{item.value}</option>
+                return <option key={item.value} value={item.value}>{item.value}</option>
               })}
             </select>
           </li>
@@ -426,17 +379,119 @@ function Filter(props: FilterProps){
             <label className="filter-label" htmlFor="country">Country</label>
             <select id="country" value={props.country} onChange={(e) => props.onCountryChange(e)}>
               {countries.map((item) => {
-                return <option value={item.value}>{item.value}</option>
+                return <option key={item.value} value={item.value}>{item.value}</option>
               })}
             </select>
           </li>
           <li>
-            <button className="apply-filters-btn" onClick={() => onFilterClick()}>Filter</button>
-            <button className="clr-filters-btn apply-filters-btn" onClick={() => onClrClick()}>Clear All</button>
+              <button className="apply-filters-btn" onClick={() => onFilterClick()}>Filter</button>
+              <button className="clr-filters-btn apply-filters-btn" onClick={() => onClrClick()}>Clear All</button>
           </li>
         </ul>
       </div>
-    );
+    </>
+  );
+}
+
+function FilterBarDesktop(props: FilterProps){
+
+  return(
+    <div className="filter-bar">
+      <h2>Filters</h2>
+      <ul>
+        <li>
+          <label className="filter-label" htmlFor="genre">Genre</label>
+          <select id="genre" value={props.genre} onChange={(e) => props.onGenreChange(e)}>
+            {genres.map((item) => {
+              return <option key={item.value} value={item.value}>{item.value}</option>
+            })}
+          </select>
+        </li>
+        <li>
+          <label className="filter-label" htmlFor="type">Show Type</label>
+          <select id="type" value={props.type} onChange={(e) => props.onTypeChange(e)}>
+            {types.map((item) => {
+              return <option key={item.value} value={item.value}>{item.value}</option>
+            })}
+          </select>
+        </li>
+        <li>
+          <label className="filter-label" htmlFor="status">Show Status</label>
+          <select id="status" value={props.status} onChange={(e) => props.onStatusChange(e)}>
+            {statuses.map((item) => {
+              return <option key={item.value} value={item.value}>{item.value}</option>
+            })}
+          </select>
+        </li>
+        <li>
+          <label className="filter-label" htmlFor="language">Language</label>
+          <select id="language" value={props.language} onChange={(e) => props.onLanguageChange(e)}>
+            {languages.map((item) => {
+              return <option key={item.value} value={item.value}>{item.value}</option>
+            })}
+          </select>
+        </li>
+        <li>
+          <label className="filter-label" htmlFor="country">Country</label>
+          <select id="country" value={props.country} onChange={(e) => props.onCountryChange(e)}>
+            {countries.map((item) => {
+              return <option key={item.value} value={item.value}>{item.value}</option>
+            })}
+          </select>
+        </li>
+        <li>
+          <button className="apply-filters-btn" onClick={() => props.onClick()}>Filter</button>
+          <button className="clr-filters-btn apply-filters-btn" onClick={() => props.onClr()}>Clear All</button>
+        </li>
+      </ul>
+    </div>
+  );
+}
+
+function Filter(props: FilterProps){
+
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  function resizeWindow(){
+    setWindowWidth(window.innerWidth);
+  }
+
+  useLayoutEffect(() => {
+    window.addEventListener("resize", resizeWindow);
+
+    return () => window.removeEventListener("resize", resizeWindow);
+  }, []);
+
+  if (windowWidth <= 768){
+    return <FilterBarMobile
+              genre={props.genre} 
+              type={props.type}
+              status={props.status}
+              language={props.language}
+              country={props.country}
+              onGenreChange={(e) => props.onGenreChange(e)}
+              onTypeChange={(e) => props.onTypeChange(e)}
+              onStatusChange={(e) => props.onStatusChange(e)}
+              onLanguageChange={(e) => props.onLanguageChange(e)}
+              onCountryChange={(e) => props.onCountryChange(e)}
+              onClick={() => props.onClick()}
+              onClr={() => props.onClr()}
+            />
+  }else{
+    return <FilterBarDesktop
+              genre={props.genre} 
+              type={props.type}
+              status={props.status}
+              language={props.language}
+              country={props.country}
+              onGenreChange={(e) => props.onGenreChange(e)}
+              onTypeChange={(e) => props.onTypeChange(e)}
+              onStatusChange={(e) => props.onStatusChange(e)}
+              onLanguageChange={(e) => props.onLanguageChange(e)}
+              onCountryChange={(e) => props.onCountryChange(e)}
+              onClick={() => props.onClick()}
+              onClr={() => props.onClr()}
+            />
   }
 }
 
@@ -460,9 +515,9 @@ function Pagination(props: {page: number, addButtons: number, onClick: (i: numbe
 
   function renderButton(i: number){
     if (i===currentPage){
-      return <button className="pagination-button active">{i}</button>;
+      return <button key={i} className="pagination-button active">{i}</button>;
     }else{
-      return <button className="pagination-button" onClick={() => props.onClick(i-1)}>{i}</button>;
+      return <button key={i} className="pagination-button" onClick={() => props.onClick(i-1)}>{i}</button>;
     }
   }
 
@@ -477,7 +532,7 @@ function Pagination(props: {page: number, addButtons: number, onClick: (i: numbe
         </button>
       </div>
       <div className="pagination-btns-cnt">
-      {Array(buttons).fill(null).map((item, i) => {
+      {Array(buttons).fill(null).map((item: null, i) => {
         if (currentPage<=5){
           return renderButton(i+1);
         }else{
@@ -498,6 +553,7 @@ function Pagination(props: {page: number, addButtons: number, onClick: (i: numbe
 }
 
 function Loader(props: LoaderProps){
+
   if (props.loading === true){
     return (
       <div className="loader">
@@ -509,13 +565,21 @@ function Loader(props: LoaderProps){
     return (
       <p>No matches</p>
     )
-  }else {
+  }else{
+    let imgSrc: string;
     return (
       <>
         <div className="shows-main">
-          {props.showsToShow && props.showsToShow.length>0 && props.showsToShow.map((item: any) => {
+          {props.showsToShow && props.showsToShow.length>0 && props.showsToShow.map((item: Show) => {
+
+            if(item.image?.medium){
+              imgSrc = item.image?.medium;
+            }else{
+              imgSrc = require(".//img/Placeholder.png");
+            }
+
             return (
-              <div className="show-cnt">
+              <div key={item.id} className="show-cnt">
                 <img className="show-img" src={item.image?.medium} onClick={() => props.details(item.id)} alt="no image"/>
                 <div className="showlist-show-info-cnt">
                   <button className="showlist-show-title-btn" onClick={() => props.details(item.id)}>{item.name}</button>
@@ -533,7 +597,7 @@ function Loader(props: LoaderProps){
 function Shows(props: {details: (id: number)=>void}){
 
   const [showsPage, setShowsPage] = useState(0);
-  const [showsToShow, setShowsToShow] = useState<Array<{}>>([]);
+  const [showsToShow, setShowsToShow] = useState<Array<Show>>([]);
   const [buttons, setButtons] = useState(0);
   const [genre, setGenre] = useState("");
   const [type, setType] = useState("");
@@ -553,7 +617,7 @@ function Shows(props: {details: (id: number)=>void}){
   const signal = abort.signal;
   let listPage = useRef<Array<number>>([0]);
   let firstIndex = useRef<Array<number>>([0]);
-  let showsArray: Array<{}> = [];
+  let showsArray: Array<Show> = [];
 
   function updateFilters(){
     setLoading(true);
@@ -635,7 +699,7 @@ function setNextPage(showsPage: number){
     setShowsPage((showsPage) => setNextPage(showsPage));
   }
 
-  function applyFilters({genres, type, status, language, country}: Filters){
+  function applyFilters({genres, type, status, language, network}: Show){
     let g: boolean, t: boolean, s: boolean, l: boolean, c: boolean;
     if ((filters.genre !== "" && genres.includes(filters.genre)) ||(filters.genre === "")){
       g = true;
@@ -657,7 +721,7 @@ function setNextPage(showsPage: number){
     } else{
       l = false;
     }
-    if ((filters.country !== "" && filters.country === country)||(filters.country === "")){
+    if ((filters.country !== "" && filters.country === network.country.name)||(filters.country === "")){
       c = true;
     } else{
       c = false;
@@ -679,7 +743,7 @@ function setNextPage(showsPage: number){
         return Promise.reject();
       }
     })
-    .then(response => {
+    .then((response: Array<Show>) => {
       const showList = response;
       for(let i = index; showsArray.length<125; i++){
         if(showList[i] !== undefined){
@@ -766,7 +830,7 @@ function setNextPage(showsPage: number){
   );
 }
 
-function RenderDay(props: {day: number, i: number, j:number, days: string[], schedule: Array<Array<{}>>, details: (id: number, season?: number, episodeID?: number) => void}){
+function RenderDay(props: {day: number, i: number, j:number, days: string[], schedule: Array<Array<EpisodeWithShow>>, details: (id: number, season?: number, episodeID?: number) => void}){
  
   const today = new Date();
 
@@ -791,9 +855,9 @@ function RenderDay(props: {day: number, i: number, j:number, days: string[], sch
         {props.day}{ordinal}
         <br/>
       </div>
-      {props.schedule[props.j+(props.i*7)] && props.schedule.length>0 && props.schedule[props.j+(props.i*7)].map((episode: any) => {
+      {props.schedule[props.j+(props.i*7)] && props.schedule.length>0 && props.schedule[props.j+(props.i*7)].map((episode: EpisodeWithShow) => {
         return (
-          <div className="cal-data">
+          <div key={episode.id} className="cal-data">
             <button className="cal-show-name-btn" onClick={() => props.details(episode.show.id)}>
               {episode.show.name}
             </button>
@@ -809,7 +873,7 @@ function RenderDay(props: {day: number, i: number, j:number, days: string[], sch
   )
 }
 
-function CalendarLoader(props: {loading: boolean, currentMonth: number, currentYear: number, daysArr: number[], schedule: Array<Array<{}>>, onPrev: () => void, onNext: () => void, details: (id: number, season?: number, episodeID?: number) => void}){
+function CalendarLoader(props: {loading: boolean, currentMonth: number, currentYear: number, daysArr: number[], schedule: Array<Array<EpisodeWithShow>>, onPrev: () => void, onNext: () => void, details: (id: number, season?: number, episodeID?: number) => void}){
  
   const months = [
     "January",
@@ -871,17 +935,17 @@ function CalendarLoader(props: {loading: boolean, currentMonth: number, currentY
         <div className="table-row day-names">
           {days.map((item) => {
             return (
-              <div className="table-header">
+              <div key={item} className="table-header">
                 <div className="day-name-widescreen">{item}</div>
               </div>
             );
           })}
         </div>
-        {Array(Math.floor((props.daysArr.length/7)+1)).fill(null).map((item, i) => {
+        {Array(Math.floor((props.daysArr.length/7)+1)).fill(null).map((item: null, i) => {
           return (
-            <div className="table-row">
+            <div key={i} className="table-row">
               {props.daysArr.slice(i*7, (i*7)+7).map((day, j) => {
-                return <RenderDay day={day} i={i} j={j} days={days} schedule={props.schedule} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>;
+                return <RenderDay key={day} day={day} i={i} j={j} days={days} schedule={props.schedule} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>;
               })}
             </div>
           )
@@ -898,9 +962,11 @@ function Calendar(props: {details: (id: number, season?: number, episodeID?: num
 
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
-  const [schedule, setSchedule] = useState<Array<Array<{}>>>([[]]);
+  const [schedule, setSchedule] = useState<Array<Array<EpisodeWithShow>>>([[]]);
   const [loading, setLoading] = useState(true);
 
+  const controller = new AbortController();
+  const signal = controller.signal;
   const firstOfMonth = new Date(currentYear, currentMonth, 1);
 
   let firstDayRaw = (firstOfMonth.getDay()-1);
@@ -958,8 +1024,8 @@ function Calendar(props: {details: (id: number, season?: number, episodeID?: num
   }
 
   async function getSchedule(isFetching: boolean){
-    let scheduleList: Array<Array<{}>> = [];
-    let dataArray: Array<{}> = [];
+    let scheduleList: Array<Array<EpisodeWithShow>> = [];
+    let dataArray: Array<EpisodeWithShow> = [];
     let monthRaw = currentMonth;
     let yearRaw = currentYear;
 
@@ -1001,9 +1067,9 @@ function Calendar(props: {details: (id: number, season?: number, episodeID?: num
 
         const date = year+"-"+month+"-"+day
 
-        const response = await fetch("https://api.tvmaze.com/schedule?date="+date);
-        const data = await response.json();
-        data.map((item: {airdate: string, show: {type: string}}) => {
+        const response = await fetch("https://api.tvmaze.com/schedule?date="+date, {signal});
+        const data: Array<EpisodeWithShow> = await response.json();
+        data.map((item: EpisodeWithShow) => {
           if (item.show.type === "Scripted" && item.airdate === date){
             dataArray.push(item);
           }
@@ -1022,6 +1088,7 @@ function Calendar(props: {details: (id: number, season?: number, episodeID?: num
 
     return function cleanup(){
       isFetching = false;
+      controller.abort()
     }
   }, [currentMonth]);
 
@@ -1033,51 +1100,52 @@ function Calendar(props: {details: (id: number, season?: number, episodeID?: num
 
 }
 
-function EpisodeTable(props: {episodes: Array<{}>, onClick:(season: number, episodeID: number)=>void}){
+function EpisodeTable(props: {episodes: Array<Episode>, onClick:(season: number, episodeID: number)=>void}){
   return (
     <>
     <h2>Episode List</h2>
       <div className="episodes-cnt">
         <div className="episode-name episodes-header">Episode Name</div>
         <div className="episode-airdate episodes-header">Airdate</div>
-        {[...props.episodes].reverse().map((episode:any) => {
-          return (
-            <>
-              <div className="episode-name">
-                <button className="episode-name-btn" onClick={() => props.onClick(episode.season, episode.number)}>
-                  {episode.name}
-                </button>
-              </div>
-              <div className="episode-airdate">
-                {episode.airdate}
-              </div>
-            </>
+      </div>
+      {[...props.episodes].reverse().map((episode: Episode, i) => {
+        return (
+          <div className="episode-row" key={episode.id}>
+            <div className="episode-name">
+              <button className="episode-name-btn" onClick={() => props.onClick(episode.season, episode.number)}>
+                {episode.name}
+              </button>
+            </div>
+            <div className="episode-airdate">
+              {episode.airdate}
+            </div>
+          </div>
           )
         })}
-      </div>
+      
     </>
   )
 }
 
-function DetailList(props: {info: any}){
+function DetailList(props: {info: Info}){
 
   let genres;
 
   if ((props.info.genres) && (props.info.genres.length)){
+    const length = props.info.genres.length - 1;
     genres = <li>
-                <b>Genres:</b> {props.info.genres.map((item: any, i: number) => {
-
-                  if (i === (props.info.genres.length-1)){
+                <b>Genres:</b> {props.info.genres.map((item: string, i: number) => {
+                  if (i === length){
                     return (
-                      <>
+                      <span key={item}>
                         {item}
-                      </>
+                      </span>
                     );
                   }else{
                     return (
-                      <>
+                      <span key={item}>
                         {item} |&nbsp;
-                      </>
+                      </span>
                     );
                   }
                 })}
@@ -1112,24 +1180,31 @@ function DetailList(props: {info: any}){
 
 function Info(props: {id: number, season?: number, episodeID?: number}){
 
-  const [show, setShow] = useState<any>();
+  const [show, setShow] = useState<ShowWithEpisodes>();
   const [season, setSeason] = useState(props.season);
   const [episodeID, setEpisodeID] = useState(props.episodeID);
 
+  const controller = new AbortController();
+  const signal = controller.signal;
+
   function getShowInfo(){
-    fetch("https://api.tvmaze.com/shows/"+props.id+"?embed=episodes")
+    fetch("https://api.tvmaze.com/shows/"+props.id+"?embed=episodes", {signal})
     .then(res => {
       if (res.ok){
         return res.json();
       }
     })
-    .then(response => {
+    .then((response: ShowWithEpisodes) => {
       setShow(response);
     })
   }
 
   useEffect(() => {
     getShowInfo();
+
+    return function cleanup(){
+      controller.abort();
+    }
   },[]);
 
   function handleTableClick(season: number, episodeID: number){
@@ -1142,9 +1217,10 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
     const episodes = show._embedded.episodes;
     let renderTable;
     let renderInfo;
+    let detailListComponent;
 
     if ((season) && (episodeID)){
-      episodes.forEach((episode: any) => {
+      episodes.forEach((episode: Episode) => {
         if ((episode.season === season) && (episode.number === episodeID)){
           renderInfo = {
             name: <h4>{episode.name}</h4>,
@@ -1164,7 +1240,7 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
     } else{
       renderInfo = {
         name: "",
-        image: <img className="info-img" src={show.image.medium} alt="no image"/>,
+        image: <img className="info-img" src={show.image?.medium} alt="no image"/>,
         header: "Show Info",
         country: <li><b>Country:</b> {show.network.country.name}</li>,
         network: <li><b>Network:</b> <a href={show.officialSite}>{show.network.name}</a></li>,
@@ -1177,10 +1253,14 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
       renderTable = <EpisodeTable episodes={episodes} onClick={(season, episodeID) => handleTableClick(season, episodeID)}/>;
     }
 
+    if(renderInfo){
+      detailListComponent = <DetailList info = {renderInfo}/>
+    }
+
     return (
       <div className="show-info main">
         <h2>{show.name}</h2>
-        <DetailList info = {renderInfo}/>
+        {detailListComponent}
         {renderTable}
       </div> 
     );
@@ -1286,6 +1366,71 @@ function App() {
   );
 }
 
+interface Show{
+  id: number,
+  name: string,
+  type: string,
+  language: string,
+  genres: Array<string>,
+  officialSite: string,
+  status: string,
+  summary: string,
+  network: {
+    name: string
+    country: {
+      name: string
+    }
+  }
+  image?: {
+    medium: string
+  }
+  rating: {
+    average: number
+  }
+}
+
+interface SearchedShow{
+  show: Show
+}
+
+interface Episode {
+  id: number,
+  season: number,
+  number: number,
+  airdate: string,
+  airtime: string,
+  name: string,
+  runtime: number,
+  summary: string,
+  image?: {
+    medium: string
+  }
+}
+
+interface EpisodeWithShow extends Episode{
+  show: Show
+}
+
+interface ShowWithEpisodes extends Show{
+  _embedded: {
+    episodes: Array<Episode>
+  }
+}
+
+interface Info{
+  name: string,
+  image: JSX.Element,
+  header: string,
+  country: JSX.Element,
+  network: JSX.Element,
+  statusOrNumber: JSX.Element,
+  typeOrAirdate: JSX.Element,
+  genres?: Array<string>,
+  airtime?: JSX.Element,
+  ratingOrRuntime: JSX.Element,
+  description: JSX.Element
+}
+
 interface MainProps {
   currentState: string,
   stateList: Array<string>, 
@@ -1321,21 +1466,13 @@ interface FilterProps {
 
 interface LoaderProps {
   loading: boolean,
-  showsToShow: Array<{}>,
+  showsToShow: Array<Show>,
   showsPage: number,
   buttons: number,
   handlePagination: (i: number)=>void,
   onNext: ()=>void,
   onPrev: ()=>void,
   details: (id: number)=>void
-}
-
-interface Filters{
-  genres: Array<string>,
-  type: string,
-  status: string,
-  language: string,
-  country: string
 }
 
 const genres = [
