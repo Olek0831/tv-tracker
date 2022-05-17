@@ -538,6 +538,14 @@ a:hover{
   transform: translate(0, 0.5vh);
 }
 
+.no-matches{
+  padding-top: 15%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: x-large;
+}
+
 .Calendar{
   margin: 2vh 2vw 5vh 2vw;
 }
@@ -652,6 +660,17 @@ a:hover{
 
 .show-info{
   margin: 2vh 2vw 5vh 2vw;
+}
+
+.back-to-show-btn{
+  all: unset;
+  color: #35906d;
+  cursor: pointer;
+}
+
+.back-to-show-btn:hover{
+  text-decoration: underline;
+  color: #3DA497; 
 }
 
 .info-cnt{

@@ -114,7 +114,7 @@ function FullSchedule(props: {ep: Array<EpisodeWithShow>, date: string, details:
   let airtimesArray: Array<string> = [];
 
   props.ep.forEach((element: EpisodeWithShow) => {
-    if (!airtimesArray.includes(element.airtime) && element.airdate === props.date){
+    if (element.airtime && !airtimesArray.includes(element.airtime) && element.airdate === props.date){
       airtimesArray.push(element.airtime);
     }
   })
@@ -156,6 +156,9 @@ function FullSchedule(props: {ep: Array<EpisodeWithShow>, date: string, details:
 function TodaysPremieres(props: {shows: Array<EpisodeWithShow>, moreShows: ()=>void, details: (id: number, season?: number, episodeID?: number)=>void}){
 
   let imgSrc: string;
+  let rating: number = 0;
+  let noRating: string = "";
+  
 
   return(
     <>
@@ -169,6 +172,12 @@ function TodaysPremieres(props: {shows: Array<EpisodeWithShow>, moreShows: ()=>v
           imgSrc = require(".//img/Placeholder.png");
         }
 
+        if (item.show.rating?.average){
+          rating = item.show.rating.average;
+        }else{
+          noRating = "(not rated)";
+        }
+
         return (
           <div key={item.id.toString()} className="today-episode-cnt">
             <img className="today-episode-img" src={imgSrc} onClick={() => props.details(item.show.id)} alt="Show Image"/><br/>
@@ -177,7 +186,7 @@ function TodaysPremieres(props: {shows: Array<EpisodeWithShow>, moreShows: ()=>v
               <button className="today-title ep-title" onClick={() => props.details(item.show.id, item.season, item.number)}>{item.name}</button><br/>
               <div className="today-ep-info">
               Airtime: {item.airtime}<br/>
-              Rating: {item.show.rating.average}/10
+              Rating: {rating}/10 {noRating}
               </div>
             </div>
           </div>
@@ -194,6 +203,7 @@ function Home(props: {moreShows: ()=>void, details: (id: number, season?: number
 
   const [todaySchedule, setTodaySchedule] = useState<Array<EpisodeWithShow>>([]);
   const [fullTodaySchedule, setFullTodaySchedule] = useState<Array<EpisodeWithShow>>([]);
+  const [errorCode, setErrorCode] = useState(0);
 
   const controller = new AbortController();
   const signal = controller.signal;
@@ -232,18 +242,28 @@ function Home(props: {moreShows: ()=>void, details: (id: number, season?: number
     .then((schedule: Array<EpisodeWithShow>) => {
       setFullTodaySchedule(schedule);
       const scheduleSortedByRating = schedule.sort((a: EpisodeWithShow, b: EpisodeWithShow) => {
-        return b.show.rating.average - a.show.rating.average;
+        if (b.show.rating?.average && a.show.rating?.average){
+          return b.show.rating.average - a.show.rating.average;
+        } else if(!(b.show.rating?.average) && a.show.rating?.average){
+          return -(a.show.rating.average);
+        }else if(b.show.rating?.average && !(a.show.rating?.average)){
+          return b.show.rating.average;
+        }else{
+          return 0;
+        }
       });
-
       let todayShowsByRating: EpisodeWithShow[] = [];
       
       scheduleSortedByRating.forEach((element: EpisodeWithShow) => {
-        if (element.show.rating.average > 0 && element.airdate === date && element.airtime > "19:00"){
+        if (element.show.rating?.average && element.airdate === date && element.airtime && element.airtime > "19:00"){
           todayShowsByRating.push(element);
         }
       });
       setTodaySchedule(todayShowsByRating.slice(0, 5));
-    });
+    })
+    .catch(err => {
+      setErrorCode(err);
+    })
   }
 
   useEffect(() => {
@@ -254,20 +274,30 @@ function Home(props: {moreShows: ()=>void, details: (id: number, season?: number
     } 
   },[]);
 
-  return(
-    <div className="Home main">
-      <TodaysPremieres shows={todaySchedule} moreShows={() => props.moreShows()} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>
-      <div className="today-full">
-        <h2 className="today-header">Full schedule for today</h2>
-        {fullTodaySchedule && fullTodaySchedule.length>0 && <FullSchedule ep={fullTodaySchedule} date={date} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>}
+  if(!(errorCode)){
+    return(
+      <div className="Home main">
+        <TodaysPremieres shows={todaySchedule} moreShows={() => props.moreShows()} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>
+        <div className="today-full">
+          <h2 className="today-header">Full schedule for today</h2>
+          {fullTodaySchedule && fullTodaySchedule.length>0 && <FullSchedule ep={fullTodaySchedule} date={date} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>}
+        </div>
       </div>
-    </div>
-  );
-}
+    )
+  }else{
+    return(
+      <div className="Home main">
+        <ErrorHandler errorCode={errorCode}/>
+      </div>
+    )
+  }
+};
 
 function Search(props: {toSearch: string, details: (id:number) => void}){
 
   const[searchResults, setSearchResults] = useState<Array<SearchedShow>>([]);
+  const[loading, setLoading] = useState(true);
+  const[errorCode, setErrorCode] = useState(0);
 
   const controller = new AbortController();
   const signal = controller.signal;
@@ -276,44 +306,76 @@ function Search(props: {toSearch: string, details: (id:number) => void}){
   const getSearchResults=()=>{
     fetch("https://api.tvmaze.com/search/shows?q="+props.toSearch, {signal})
     .then(res => {
-      return res.json();
+      if(res.ok){
+        return res.json();
+      }else{
+        return Promise.reject(res.status);
+      }
+      
     })
     .then((results: Array<SearchedShow>) => {
       setSearchResults(results);
-    });
+      setLoading(false);
+    })
+    .catch(err => {
+      setErrorCode(err);
+    })
   }
 
   useEffect(() => {
-    getSearchResults()
+    setLoading(true);
+    getSearchResults();
+    setErrorCode(0);
 
     return function cleanup(){
       controller.abort();
     }
   },[props.toSearch]);
 
-  return (
-    <div className="Search main">
-      {searchResults && searchResults.length>0 && searchResults.map((item: SearchedShow) => {
+  if(!(errorCode)){
+    if(loading){
+      return (
+        <div className="loader">
+          <div className="loading-animation"></div>
+          <div className="loading-text">Loading...</div>
+        </div>
+      )
+    }else if(!(searchResults.length)){
+      return (
+        <div className="no-matches">It looks like we didn't find what you're looking for.</div>
+      )
+    }else{
+      return (
+        <div className="Search main">
+          {searchResults && searchResults.length>0 && searchResults.map((item: SearchedShow) => {
 
-        if(item.show.image?.medium){
-          imgSrc = item.show.image.medium;
-        }else{
-          imgSrc = require(".//img/Placeholder.png");
-        }
+            if(item.show.image?.medium){
+              imgSrc = item.show.image.medium;
+            }else{
+              imgSrc = require(".//img/Placeholder.png");
+            }
 
-        return (
-          <div key={item.show.id} className="show-cnt">
-            <img className="show-img" src={imgSrc} onClick={() => props.details(item.show.id)} alt="Show Image"/>
-            <div className="showlist-show-info-cnt">
-              <button className="showlist-show-title-btn" onClick={() => props.details(item.show.id)}>
-                {item.show.name}
-              </button>  
-            </div>
-          </div>
-        )
-      })}
-    </div>
-  );
+            return (
+              <div key={item.show.id} className="show-cnt">
+                <img className="show-img" src={imgSrc} onClick={() => props.details(item.show.id)} alt="Show Image"/>
+                <div className="showlist-show-info-cnt">
+                  <button className="showlist-show-title-btn" onClick={() => props.details(item.show.id)}>
+                    {item.show.name}
+                  </button>  
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      );
+    }
+  }else{
+    return (
+      <div className="Search main">
+        <ErrorHandler errorCode={errorCode}/>
+      </div>
+    );
+  }
 }
 
 function FilterBarMobile(props: FilterProps){
@@ -563,7 +625,7 @@ function Loader(props: LoaderProps){
     )
   }else if(props.showsToShow.length === 0){
     return (
-      <p>No matches</p>
+      <div className="no-matches">It looks like we didn't find what you're looking for.</div>
     )
   }else{
     let imgSrc: string;
@@ -580,7 +642,7 @@ function Loader(props: LoaderProps){
 
             return (
               <div key={item.id} className="show-cnt">
-                <img className="show-img" src={item.image?.medium} onClick={() => props.details(item.id)} alt="no image"/>
+                <img className="show-img" src={imgSrc} onClick={() => props.details(item.id)} alt="Show Image"/>
                 <div className="showlist-show-info-cnt">
                   <button className="showlist-show-title-btn" onClick={() => props.details(item.id)}>{item.name}</button>
                 </div>
@@ -605,6 +667,7 @@ function Shows(props: {details: (id: number)=>void}){
   const [language, setLanguage] = useState("");
   const [country, setCountry] = useState("");
   const [loading, setLoading] = useState(true);
+  const [errorCode, setErrorCode] = useState(0);
   const [filters, setFilters] = useState({
     genre: genre,
     type: type,
@@ -701,7 +764,7 @@ function setNextPage(showsPage: number){
 
   function applyFilters({genres, type, status, language, network}: Show){
     let g: boolean, t: boolean, s: boolean, l: boolean, c: boolean;
-    if ((filters.genre !== "" && genres.includes(filters.genre)) ||(filters.genre === "")){
+    if ((filters.genre !== "" && genres?.includes(filters.genre))||(filters.genre === "")){
       g = true;
     } else{
       g = false;
@@ -740,7 +803,7 @@ function setNextPage(showsPage: number){
       if (res.ok){
         return res.json();
       }else{
-        return Promise.reject();
+        return Promise.reject(res.status);
       }
     })
     .then((response: Array<Show>) => {
@@ -789,45 +852,57 @@ function setNextPage(showsPage: number){
       setShowsToShow(showsArray.slice(0, 25));
       setButtons(Math.floor((showsArray.length-1)/25));
       setLoading(false);
+      if (!(err === 404)){
+        setErrorCode(err);
+      }
     })
   }
 
   useEffect(() => {
     getShowList(listPage.current[showsPage], firstIndex.current[showsPage]);
+    setErrorCode(0);
 
     return function cleanup(){
       abort.abort();
     }
   }, [showsPage, filters]);
 
-  return(
-    <div className="Shows main">
-      <Filter 
-        genre={genre} 
-        type={type}
-        status={status}
-        language={language}
-        country={country}
-        onGenreChange={(e) => handleGenre(e)}
-        onTypeChange={(e) => handleType(e)}
-        onStatusChange={(e) => handleStatus(e)}
-        onLanguageChange={(e) => handleLanguage(e)}
-        onCountryChange={(e) => handleCountry(e)}
-        onClick={() => updateFilters()}
-        onClr={() => clearFilters()}
-      />
-      <Loader 
-        loading={loading}
-        showsToShow={showsToShow}
-        showsPage={showsPage} 
-        buttons={buttons}
-        handlePagination={(i) => handlePagination(i)}
-        onPrev={() => handlePrev()}
-        onNext={() => handleNext()}
-        details={(id) => props.details(id)}
-      />
-    </div>
-  );
+  if(!(errorCode)){
+    return(
+      <div className="Shows main">
+        <Filter 
+          genre={genre} 
+          type={type}
+          status={status}
+          language={language}
+          country={country}
+          onGenreChange={(e) => handleGenre(e)}
+          onTypeChange={(e) => handleType(e)}
+          onStatusChange={(e) => handleStatus(e)}
+          onLanguageChange={(e) => handleLanguage(e)}
+          onCountryChange={(e) => handleCountry(e)}
+          onClick={() => updateFilters()}
+          onClr={() => clearFilters()}
+        />
+        <Loader 
+          loading={loading}
+          showsToShow={showsToShow}
+          showsPage={showsPage} 
+          buttons={buttons}
+          handlePagination={(i) => handlePagination(i)}
+          onPrev={() => handlePrev()}
+          onNext={() => handleNext()}
+          details={(id) => props.details(id)}
+        />
+      </div>
+    );
+  }else{
+    return (
+      <div className="Search main">
+        <ErrorHandler errorCode={errorCode}/>
+      </div>
+    );
+  }
 }
 
 function RenderDay(props: {day: number, i: number, j:number, days: string[], schedule: Array<Array<EpisodeWithShow>>, details: (id: number, season?: number, episodeID?: number) => void}){
@@ -1122,7 +1197,6 @@ function EpisodeTable(props: {episodes: Array<Episode>, onClick:(season: number,
           </div>
           )
         })}
-      
     </>
   )
 }
@@ -1183,6 +1257,7 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
   const [show, setShow] = useState<ShowWithEpisodes>();
   const [season, setSeason] = useState(props.season);
   const [episodeID, setEpisodeID] = useState(props.episodeID);
+  const [errorCode, setErrorCode] = useState(0);
 
   const controller = new AbortController();
   const signal = controller.signal;
@@ -1192,10 +1267,15 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
     .then(res => {
       if (res.ok){
         return res.json();
+      }else{
+        return Promise.reject(res.status);
       }
     })
     .then((response: ShowWithEpisodes) => {
       setShow(response);
+    })
+    .catch(err => {
+      setErrorCode(err);
     })
   }
 
@@ -1212,43 +1292,93 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
     setEpisodeID(episodeID);
   }
 
-  if (show){
+  function backToShow(){
+    setSeason(undefined);
+    setEpisodeID(undefined);
+  }
 
+  if (show){
     const episodes = show._embedded.episodes;
     let renderTable;
     let renderInfo;
     let detailListComponent;
+    let showName = <h2>{show.name}</h2>;
 
     if ((season) && (episodeID)){
+      showName = <button className="back-to-show-btn" onClick={() => backToShow()}><h2>{show.name}</h2></button>
       episodes.forEach((episode: Episode) => {
         if ((episode.season === season) && (episode.number === episodeID)){
+
+          let summary: JSX.Element | string;
+          let runtime: JSX.Element | string;
+          let imgSrc: string;
+
+          if(episode.image?.medium){
+            imgSrc = episode.image.medium;
+          }else{
+            imgSrc = require(".//img/Placeholder.png");
+          }
+
+          if (episode.summary){
+            summary = <div className="show-description" dangerouslySetInnerHTML={{__html: episode.summary}}/>;
+          }else{
+            summary = "";
+          }
+
+          if (episode.runtime){
+            runtime = <li><b>Runtime:</b> {episode.runtime}</li>;
+          }else{
+            runtime = "";
+          }
+
           renderInfo = {
             name: <h4>{episode.name}</h4>,
-            image: <img className="info-img" src={episode.image?.medium} alt="no image"/>,
+            image: <img className="info-img" src={imgSrc} alt="Episode Image"/>,
             header: "Episode Info",
             country: <li><b>Country:</b> {show.network.country.name}</li>,
             network: <li><b>Network:</b> <a href={show.officialSite}>{show.network.name}</a></li>,
             statusOrNumber: <li><b>Number:</b> Season {episode.season}, Episode {episode.number}</li>,
             typeOrAirdate: <li><b>Airdate:</b> {episode.airdate}</li>,
             airtime: <li><b>Airtime:</b> {episode.airtime}</li>,
-            ratingOrRuntime: <li><b>Runtime:</b> {episode.runtime}</li>,
-            description: <div className="show-description" dangerouslySetInnerHTML={{__html: episode.summary}}/>
+            ratingOrRuntime: runtime,
+            description: summary
           };
         }
       });
       renderTable = "";
     } else{
+      let summary: JSX.Element | string;
+      let rating: JSX.Element | string;
+      let imgSrc: string;
+
+      if(show.image?.medium){
+        imgSrc = show.image.medium;
+      }else{
+        imgSrc = require(".//img/Placeholder.png");
+      }
+
+      if (show.summary){
+        summary = <div className="show-description" dangerouslySetInnerHTML={{__html: show.summary}}/>;
+      }else{
+        summary = "";
+      }
+
+      if(show.rating?.average){
+        rating = <li><b>Rating:</b> {show.rating.average}/10</li>;
+      }else{
+        rating = "";
+      }
       renderInfo = {
         name: "",
-        image: <img className="info-img" src={show.image?.medium} alt="no image"/>,
+        image: <img className="info-img" src={imgSrc} alt="Show Image"/>,
         header: "Show Info",
         country: <li><b>Country:</b> {show.network.country.name}</li>,
         network: <li><b>Network:</b> <a href={show.officialSite}>{show.network.name}</a></li>,
         statusOrNumber: <li><b>Status:</b> {show.status}</li>,
         typeOrAirdate: <li><b>Show Type:</b> {show.type}</li>,
         genres: show.genres,
-        ratingOrRuntime: <li><b>Rating:</b> {show.rating.average}/10</li>,
-        description: <div className="show-description" dangerouslySetInnerHTML={{__html: show.summary}}/>
+        ratingOrRuntime: rating,
+        description: summary
       };
       renderTable = <EpisodeTable episodes={episodes} onClick={(season, episodeID) => handleTableClick(season, episodeID)}/>;
     }
@@ -1257,12 +1387,20 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
       detailListComponent = <DetailList info = {renderInfo}/>
     }
 
+
+
     return (
       <div className="show-info main">
-        <h2>{show.name}</h2>
+        {showName}
         {detailListComponent}
         {renderTable}
       </div> 
+    );
+  }else if(errorCode){
+    return (
+      <div className="Search main">
+        <ErrorHandler errorCode={errorCode}/>
+      </div>
     );
   }else{
     return (
@@ -1272,6 +1410,29 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
       </div>
     );
   }
+}
+
+function ErrorHandler(props: {errorCode: number}){
+
+  let errorMessage: string;
+
+  if (props.errorCode >= 500){
+    if (props.errorCode === 502){
+      errorMessage = "502 - Bad Gateway";
+    }else if(props.errorCode === 503){
+      errorMessage = "503 - Service Unavailable";
+    }else if(props.errorCode === 504){
+      errorMessage = "504 - Gateway Timeout";
+    }else{
+      errorMessage = props.errorCode+" - Server Error";
+    }
+  }else if(props.errorCode === 404){
+    errorMessage = "404 - Resource Not Found";
+  }else{
+    errorMessage = props.errorCode+" - An Error Occured";
+  }
+
+  return <div className="error-cnt">{errorMessage}</div>
 }
 
 function Main(props: MainProps){
@@ -1371,10 +1532,10 @@ interface Show{
   name: string,
   type: string,
   language: string,
-  genres: Array<string>,
+  genres?: Array<string>,
   officialSite: string,
   status: string,
-  summary: string,
+  summary?: string,
   network: {
     name: string
     country: {
@@ -1384,7 +1545,7 @@ interface Show{
   image?: {
     medium: string
   }
-  rating: {
+  rating?: {
     average: number
   }
 }
@@ -1398,10 +1559,10 @@ interface Episode {
   season: number,
   number: number,
   airdate: string,
-  airtime: string,
+  airtime?: string,
   name: string,
-  runtime: number,
-  summary: string,
+  runtime?: number,
+  summary?: string,
   image?: {
     medium: string
   }
@@ -1427,8 +1588,8 @@ interface Info{
   typeOrAirdate: JSX.Element,
   genres?: Array<string>,
   airtime?: JSX.Element,
-  ratingOrRuntime: JSX.Element,
-  description: JSX.Element
+  ratingOrRuntime: JSX.Element | string,
+  description: JSX.Element | string
 }
 
 interface MainProps {
