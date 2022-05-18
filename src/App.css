@@ -318,6 +318,8 @@ a:hover{
   grid-template-rows: auto;
   padding-top: 3vh;
   padding-bottom: 5vh;
+  padding-left: 2vw;
+  padding-right: 2vw;
 }
 
 .Shows{
@@ -861,6 +863,9 @@ a:hover{
 
   .Search{
     grid-template-columns: repeat(5, 1fr);
+    padding-top: 5vh;
+    padding-left: 10vw;
+    padding-right: 10vw;
   }
 
   .filter-bar{
