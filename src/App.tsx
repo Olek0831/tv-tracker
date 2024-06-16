@@ -6,7 +6,7 @@ function Banner(props: BannerProps){
     <div className="Banner">
       <div className="logo-cnt">
         <button className="logo-btn" onClick={() => props.onClick(0)}>
-          <img className="logo" src={require(".//img/TV Tracker.png")} alt="Logo"/>
+          <img className="logo" src={"./src/img/TV Tracker.png"} alt="Logo"/>
         </button>
       </div>
       <div className="search-bar-cnt">
@@ -169,7 +169,7 @@ function TodaysPremieres(props: {shows: Array<EpisodeWithShow>, moreShows: ()=>v
         if(item.show.image?.medium){
           imgSrc = item.show.image.medium;
         }else{
-          imgSrc = require(".//img/Placeholder.png");
+          imgSrc = "./src/img/Placeholder.png";
         }
 
         if (item.show.rating?.average){
@@ -352,7 +352,7 @@ function Search(props: {toSearch: string, details: (id:number) => void}){
             if(item.show.image?.medium){
               imgSrc = item.show.image.medium;
             }else{
-              imgSrc = require(".//img/Placeholder.png");
+              imgSrc = "./src/img/Placeholder.png";
             }
 
             return (
@@ -637,7 +637,7 @@ function Loader(props: LoaderProps){
             if(item.image?.medium){
               imgSrc = item.image?.medium;
             }else{
-              imgSrc = require(".//img/Placeholder.png");
+              imgSrc = "./src/img/Placeholder.png";
             }
 
             return (
@@ -1316,7 +1316,7 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
           if(episode.image?.medium){
             imgSrc = episode.image.medium;
           }else{
-            imgSrc = require(".//img/Placeholder.png");
+            imgSrc = "./src/img/Placeholder.png";
           }
 
           if (episode.summary){
@@ -1354,7 +1354,7 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
       if(show.image?.medium){
         imgSrc = show.image.medium;
       }else{
-        imgSrc = require(".//img/Placeholder.png");
+        imgSrc = "./src/img/Placeholder.png";
       }
 
       if (show.summary){
@@ -1457,7 +1457,7 @@ function Main(props: MainProps){
 
 }
 
-function App() {
+export default function App() {
 
   const stateList: Array<string> = ["home", "search", "shows", "calendar", "info"];
   const [mainState, setMainState] = useState(stateList[0]);
@@ -1860,5 +1860,3 @@ const countries = [
   {value: "Venezuela, Bolivarian Republic of"},
   {value: "Viet Nam"}
 ];
-
-export default App;
