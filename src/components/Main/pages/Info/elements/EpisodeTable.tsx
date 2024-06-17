@@ -1,6 +1,7 @@
 import React from "react";
+import { Link } from 'react-router-dom';
 
-function EpisodeTable(props: {episodes: Array<Episode>, onClick:(season: number, episodeID: number)=>void}){
+function EpisodeTable(props: {episodes: Array<Episode>}){
   return (
     <>
     <h2>Episode List</h2>
@@ -12,8 +13,10 @@ function EpisodeTable(props: {episodes: Array<Episode>, onClick:(season: number,
         return (
           <div className="episode-row" key={episode.id}>
             <div className="episode-name">
-              <button className="episode-name-btn" onClick={() => props.onClick(episode.season, episode.number)}>
-                {episode.name}
+              <button className="episode-name-btn">
+                <Link to={`${episode.season}/${episode.number}`} >
+                  {episode.name}
+                </Link>
               </button>
             </div>
             <div className="episode-airdate">

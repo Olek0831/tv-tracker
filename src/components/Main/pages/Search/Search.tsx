@@ -1,19 +1,22 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import ErrorHandler from '../elements/ErrorHandler';
+import { useParams, Link } from 'react-router-dom';
+import ErrorHandler from '../../elements/ErrorHandler';
 
-function Search(props: {toSearch: string, details: (id:number) => void}){
+function Search(){
 
   const[searchResults, setSearchResults] = useState<Array<SearchedShow>>([]);
   const[loading, setLoading] = useState(true);
   const[errorCode, setErrorCode] = useState(0);
+
+  const params = useParams();
 
   const controller = new AbortController();
   const signal = controller.signal;
   let imgSrc: string;
 
   const getSearchResults=()=>{
-    fetch("https://api.tvmaze.com/search/shows?q="+props.toSearch, {signal})
+    fetch("https://api.tvmaze.com/search/shows?q="+params.searchQuery, {signal})
     .then(res => {
       if(res.ok){
         return res.json();
@@ -39,7 +42,7 @@ function Search(props: {toSearch: string, details: (id:number) => void}){
     return function cleanup(){
       controller.abort();
     }
-  },[props.toSearch]);
+  },[params.searchQuery]);
 
   if(!(errorCode)){
     if(loading){
@@ -61,15 +64,19 @@ function Search(props: {toSearch: string, details: (id:number) => void}){
             if(item.show.image?.medium){
               imgSrc = item.show.image.medium;
             }else{
-              imgSrc = "./src/assets/img/Placeholder.png";
+              imgSrc = "/src/assets/img/Placeholder.png";
             }
 
             return (
               <div key={item.show.id} className="show-cnt">
-                <img className="show-img" src={imgSrc} onClick={() => props.details(item.show.id)} alt="Show Image"/>
+                <Link to={`/info/${item.show.id}`}>
+                  <img className="show-img" src={imgSrc} alt="Show Image"/>
+                </Link>
                 <div className="showlist-show-info-cnt">
-                  <button className="showlist-show-title-btn" onClick={() => props.details(item.show.id)}>
-                    {item.show.name}
+                  <button className="showlist-show-title-btn">
+                    <Link to={`/info/${item.show.id}`}>
+                      {item.show.name}
+                    </Link>
                   </button>  
                 </div>
               </div>

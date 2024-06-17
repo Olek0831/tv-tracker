@@ -1,8 +1,8 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import CalendarLoader from '../elements/CalendarLoader';
+import CalendarLoader from './elements/CalendarLoader';
 
-function Calendar(props: {details: (id: number, season?: number, episodeID?: number) => void}){
+function Calendar(){
 
   const today = new Date();
 
@@ -140,7 +140,7 @@ function Calendar(props: {details: (id: number, season?: number, episodeID?: num
 
   return (
     <div className="Calendar main">
-      <CalendarLoader loading = {loading} currentMonth={currentMonth} currentYear={currentYear} schedule={schedule} daysArr = {daysArray} onPrev={() => handlePrev()} onNext={() => handleNext()} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>
+      <CalendarLoader loading = {loading} currentMonth={currentMonth} currentYear={currentYear} schedule={schedule} daysArr = {daysArray} onPrev={() => handlePrev()} onNext={() => handleNext()}/>
     </div>
   );
 

@@ -1,10 +1,10 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import TodaysPremieres from '../elements/TodaysPremieres';
-import FullSchedule from '../elements/FullSchedule';
-import ErrorHandler from '../elements/ErrorHandler';
+import TodaysPremieres from './elements/TodaysPremieres';
+import FullSchedule from './elements/FullSchedule';
+import ErrorHandler from '../../elements/ErrorHandler';
 
-function Home(props: {moreShows: ()=>void, details: (id: number, season?: number, episodeID?: number)=>void}){
+function Home() {
 
   const [todaySchedule, setTodaySchedule] = useState<Array<EpisodeWithShow>>([]);
   const [fullTodaySchedule, setFullTodaySchedule] = useState<Array<EpisodeWithShow>>([]);
@@ -82,10 +82,10 @@ function Home(props: {moreShows: ()=>void, details: (id: number, season?: number
   if(!(errorCode)){
     return(
       <div className="Home main">
-        <TodaysPremieres shows={todaySchedule} moreShows={() => props.moreShows()} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>
+        <TodaysPremieres shows={todaySchedule}/>
         <div className="today-full">
           <h2 className="today-header">Full schedule for today</h2>
-          {fullTodaySchedule && fullTodaySchedule.length>0 && <FullSchedule ep={fullTodaySchedule} date={date} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>}
+          {fullTodaySchedule && fullTodaySchedule.length>0 && <FullSchedule ep={fullTodaySchedule} date={date}/>}
         </div>
       </div>
     )
