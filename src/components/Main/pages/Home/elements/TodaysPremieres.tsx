@@ -1,6 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom'
 
-function TodaysPremieres(props: {shows: Array<EpisodeWithShow>, moreShows: ()=>void, details: (id: number, season?: number, episodeID?: number)=>void}){
+function TodaysPremieres(props: {shows: Array<EpisodeWithShow>}){
 
   let imgSrc: string;
   let rating: number = 0;
@@ -16,7 +17,7 @@ function TodaysPremieres(props: {shows: Array<EpisodeWithShow>, moreShows: ()=>v
         if(item.show.image?.medium){
           imgSrc = item.show.image.medium;
         }else{
-          imgSrc = "./src/assets/img/Placeholder.png";
+          imgSrc = "/src/assets/img/Placeholder.png";
         }
 
         if (item.show.rating?.average){
@@ -27,10 +28,22 @@ function TodaysPremieres(props: {shows: Array<EpisodeWithShow>, moreShows: ()=>v
 
         return (
           <div key={item.id.toString()} className="today-episode-cnt">
-            <img className="today-episode-img" src={imgSrc} onClick={() => props.details(item.show.id)} alt="Show Image"/><br/>
+            <Link to={`/info/${item.show.id}`}>
+              <img className="today-episode-img" src={imgSrc} alt="Show Image"/><br/>
+            </Link>
             <div className="today-ep-info-cnt">
-              <button className="today-title show-title" onClick={() => props.details(item.show.id)}>{item.show.name}</button><br/>
-              <button className="today-title ep-title" onClick={() => props.details(item.show.id, item.season, item.number)}>{item.name}</button><br/>
+              <button className="today-title show-title">
+                <Link to={`/info/${item.show.id}`}>
+                  {item.show.name}
+                </Link>
+              </button>
+              <br/>
+              <button className="today-title ep-title">
+                <Link to={`/info/${item.show.id}/${item.season}/${item.number}`}>
+                  {item.name}
+                </Link>
+              </button>
+              <br/>
               <div className="today-ep-info">
               Airtime: {item.airtime}<br/>
               Rating: {rating}/10 {noRating}
@@ -40,7 +53,11 @@ function TodaysPremieres(props: {shows: Array<EpisodeWithShow>, moreShows: ()=>v
         );
       })}
     </div>
-    <button className="more-shows" onClick={() => props.moreShows()}>More shows &nbsp;&gt;&gt;</button>
+    <button className="more-shows">
+      <Link to={'/shows'}>
+        More shows &nbsp;&gt;&gt;
+      </Link>
+    </button>
     </> 
   );
 

@@ -1,7 +1,8 @@
 import React from "react";
 import { useState, useLayoutEffect } from "react";
+import { Link } from "react-router-dom";
 
-function RenderMenuByWidth(props: {onClick:(i:number)=>void}){
+function RenderMenuByWidth(){
 
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [navExpanded, setNavExpanded] = useState(false);
@@ -10,9 +11,8 @@ function RenderMenuByWidth(props: {onClick:(i:number)=>void}){
     setWindowWidth(window.innerWidth);
   }
 
-  function handleNavClick(i: number){
+  function handleNavClick(){
     setNavExpanded(false);
-    props.onClick(i);
   }
 
   useLayoutEffect(() => {
@@ -35,10 +35,18 @@ function RenderMenuByWidth(props: {onClick:(i:number)=>void}){
         <div className={navExpanded ? "nav-menu expanded" : "nav-menu"}>
           <ul>
             <li key={"shows"}>
-              <button className="nav-menu-btn nav-btn" onClick={() => handleNavClick(2)}>Shows</button>
+              <button className="nav-menu-btn nav-btn" onClick={() => handleNavClick()}>
+                <Link to={'/shows'} >
+                  Shows
+                </Link>
+              </button>
             </li>
             <li key={"calendar"}>
-              <button className="nav-menu-btn nav-btn" onClick={() => handleNavClick(3)}>Calendar</button>
+              <button className="nav-menu-btn nav-btn" onClick={() => handleNavClick()}>
+                <Link to={'/calendar'} >
+                  Calendar
+                </Link>
+              </button>
             </li>
           </ul>
         </div>
@@ -47,8 +55,16 @@ function RenderMenuByWidth(props: {onClick:(i:number)=>void}){
   }else{
     return (
       <>
-        <button className="nav-btn" onClick={() => props.onClick(2)}>Shows</button>
-        <button className="nav-btn" onClick={() => props.onClick(3)}>Calendar</button>
+        <button className="nav-btn">
+          <Link to={'/shows'} >
+            Shows
+          </Link>
+        </button>
+        <button className="nav-btn">
+          <Link to={'/calendar'} >
+            Calendar
+          </Link>
+        </button>
       </>
     );
   }

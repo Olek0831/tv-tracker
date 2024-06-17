@@ -1,6 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
-function FullSchedule(props: {ep: Array<EpisodeWithShow>, date: string, details: (id: number, season?: number, episodeID?: number)=>void}){
+function FullSchedule(props: {ep: Array<EpisodeWithShow>, date: string}){
 
   let airtimesArray: Array<string> = [];
 
@@ -25,12 +26,16 @@ function FullSchedule(props: {ep: Array<EpisodeWithShow>, date: string, details:
               return (
                 <tr key={episode.id.toString()}>
                   <td className="full-sch-data">
-                    <button className="full-sch-show-name" onClick={() => props.details(episode.show.id)}>
-                      {episode.show.name}
+                    <button className="full-sch-show-name">
+                      <Link to={`/info/${episode.show.id}`}>
+                        {episode.show.name}
+                      </Link>
                     </button>
                     <br/>
-                    <button className="full-sch-ep-name" onClick={() => props.details(episode.show.id, episode.season, episode.number)}>
-                      {episode.name}
+                    <button className="full-sch-ep-name">
+                      <Link to={`/info/${episode.show.id}/${episode.season}/${episode.number}`}>
+                        {episode.name}
+                      </Link>
                     </button>
                   </td>
                 </tr>

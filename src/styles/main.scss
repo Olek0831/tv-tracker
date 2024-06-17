@@ -241,12 +241,14 @@ a:hover{
   margin-top: 1vh;
 }
 
-.show-title{
+.show-title, .show-title > a{
+  color: white;
   font-size: larger;
   font-weight: bold;
 }
 
-.ep-title{
+.ep-title, .ep-title > a{
+  color: white;
   margin-bottom: 1vh;
 }
 

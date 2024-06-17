@@ -1,6 +1,7 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
-function CalendarLoader(props: {loading: boolean, currentMonth: number, currentYear: number, daysArr: number[], schedule: Array<Array<EpisodeWithShow>>, onPrev: () => void, onNext: () => void, details: (id: number, season?: number, episodeID?: number) => void}){
+function CalendarLoader(props: {loading: boolean, currentMonth: number, currentYear: number, daysArr: number[], schedule: Array<Array<EpisodeWithShow>>, onPrev: () => void, onNext: () => void}){
  
   const months = [
     "January",
@@ -72,7 +73,7 @@ function CalendarLoader(props: {loading: boolean, currentMonth: number, currentY
           return (
             <div key={i} className="table-row">
               {props.daysArr.slice(i*7, (i*7)+7).map((day, j) => {
-                return <RenderDay key={day} day={day} i={i} j={j} days={days} schedule={props.schedule} details={(id, season?, episodeID?) => props.details(id, season, episodeID)}/>;
+                return <RenderDay key={day} day={day} i={i} j={j} days={days} schedule={props.schedule}/>;
               })}
             </div>
           )
@@ -83,7 +84,7 @@ function CalendarLoader(props: {loading: boolean, currentMonth: number, currentY
   }
 }
 
-function RenderDay(props: {day: number, i: number, j:number, days: string[], schedule: Array<Array<EpisodeWithShow>>, details: (id: number, season?: number, episodeID?: number) => void}){
+function RenderDay(props: {day: number, i: number, j:number, days: string[], schedule: Array<Array<EpisodeWithShow>>}){
  
   const today = new Date();
 
@@ -111,12 +112,16 @@ function RenderDay(props: {day: number, i: number, j:number, days: string[], sch
       {props.schedule[props.j+(props.i*7)] && props.schedule.length>0 && props.schedule[props.j+(props.i*7)].map((episode: EpisodeWithShow) => {
         return (
           <div key={episode.id} className="cal-data">
-            <button className="cal-show-name-btn" onClick={() => props.details(episode.show.id)}>
-              {episode.show.name}
+            <button className="cal-show-name-btn">
+              <Link to={`/info/${episode.show.id}`} >
+                {episode.show.name}
+              </Link>
             </button>
             <br/>
-            <button className="cal-episode-name-btn" onClick={() => props.details(episode.show.id, episode.season, episode.number)}>
-              {episode.name}
+            <button className="cal-episode-name-btn">
+              <Link to={`/info/${episode.show.id}/${episode.season}/${episode.number}`} >
+                {episode.name}
+              </Link>
             </button>
             <br/>
           </div>

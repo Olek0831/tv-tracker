@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useLayoutEffect } from "react";
-import { genres, types, statuses, languages, countries } from '../../../variables.ts';
+import { genres, types, statuses, languages, countries } from '../../../../../variables.ts';
 
 function Filter(props: FilterProps){
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import Pagination from './Pagination';
+import { Link } from 'react-router-dom'; 
 
 function Loader(props: LoaderProps){
 
@@ -24,14 +25,20 @@ function Loader(props: LoaderProps){
             if(item.image?.medium){
               imgSrc = item.image?.medium;
             }else{
-              imgSrc = "./src/assets/img/Placeholder.png";
+              imgSrc = "/src/assets/img/Placeholder.png";
             }
 
             return (
               <div key={item.id} className="show-cnt">
-                <img className="show-img" src={imgSrc} onClick={() => props.details(item.id)} alt="Show Image"/>
+                <Link to={`/info/${item.id}`}>
+                  <img className="show-img" src={imgSrc} alt="Show Image"/>
+                </Link>
                 <div className="showlist-show-info-cnt">
-                  <button className="showlist-show-title-btn" onClick={() => props.details(item.id)}>{item.name}</button>
+                  <button className="showlist-show-title-btn">
+                    <Link to={`/info/${item.id}`}>
+                      {item.name}
+                    </Link>  
+                  </button>
                 </div>
               </div>
             );

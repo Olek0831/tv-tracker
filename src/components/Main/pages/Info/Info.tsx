@@ -1,21 +1,22 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import ErrorHandler from '../elements/ErrorHandler';
-import EpisodeTable from '../elements/EpisodeTable';
-import DetailList from '../elements/DetailList';
+import ErrorHandler from '../../elements/ErrorHandler';
+import EpisodeTable from './elements/EpisodeTable';
+import DetailList from './elements/DetailList';
+import { Link, useParams } from 'react-router-dom';
 
-function Info(props: {id: number, season?: number, episodeID?: number}){
+function Info(){
 
   const [show, setShow] = useState<ShowWithEpisodes>();
-  const [season, setSeason] = useState(props.season);
-  const [episodeID, setEpisodeID] = useState(props.episodeID);
   const [errorCode, setErrorCode] = useState(0);
 
   const controller = new AbortController();
   const signal = controller.signal;
 
+  const params = useParams();
+
   function getShowInfo(){
-    fetch("https://api.tvmaze.com/shows/"+props.id+"?embed=episodes", {signal})
+    fetch("https://api.tvmaze.com/shows/"+params.showID+"?embed=episodes", {signal})
     .then(res => {
       if (res.ok){
         return res.json();
@@ -39,16 +40,6 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
     }
   },[]);
 
-  function handleTableClick(season: number, episodeID: number){
-    setSeason(season);
-    setEpisodeID(episodeID);
-  }
-
-  function backToShow(){
-    setSeason(undefined);
-    setEpisodeID(undefined);
-  }
-
   if (show){
     const episodes = show._embedded.episodes;
     let renderTable;
@@ -56,10 +47,14 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
     let detailListComponent;
     let showName = <h2>{show.name}</h2>;
 
-    if ((season) && (episodeID)){
-      showName = <button className="back-to-show-btn" onClick={() => backToShow()}><h2>{show.name}</h2></button>
+    if ((params.seasonID) && (params.episodeID)){
+      showName = <button className="back-to-show-btn">
+                    <Link to={`/info/${params.showID}`} >
+                      <h2>{show.name}</h2>
+                    </Link>
+                  </button>;
       episodes.forEach((episode: Episode) => {
-        if ((episode.season === season) && (episode.number === episodeID)){
+        if ((episode.season.toString() === params.seasonID) && (episode.number.toString() === params.episodeID)){
 
           let summary: JSX.Element | string;
           let runtime: JSX.Element | string;
@@ -68,7 +63,7 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
           if(episode.image?.medium){
             imgSrc = episode.image.medium;
           }else{
-            imgSrc = "./src/assets/img/Placeholder.png";
+            imgSrc = "/src/assets/img/Placeholder.png";
           }
 
           if (episode.summary){
@@ -106,7 +101,7 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
       if(show.image?.medium){
         imgSrc = show.image.medium;
       }else{
-        imgSrc = "./src/assets/img/Placeholder.png";
+        imgSrc = "/src/assets/img/Placeholder.png";
       }
 
       if (show.summary){
@@ -132,7 +127,7 @@ function Info(props: {id: number, season?: number, episodeID?: number}){
         ratingOrRuntime: rating,
         description: summary
       };
-      renderTable = <EpisodeTable episodes={episodes} onClick={(season, episodeID) => handleTableClick(season, episodeID)}/>;
+      renderTable = <EpisodeTable episodes={episodes} />;
     }
 
     if(renderInfo){

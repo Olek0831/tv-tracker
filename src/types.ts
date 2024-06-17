@@ -67,19 +67,11 @@ interface MainProps {
   currentState: string,
   stateList: Array<string>, 
   toSearch: string, 
-  moreShows: ()=>void,
   ID: number,
   season?: number,
   episodeID?: number,
   details:(id: number, season?: number, episodeID?: number) => void
 }
-
-interface BannerProps {
-  onClick:(i:number)=>void,
-  searchValue: string, 
-  onChange:(e: React.ChangeEvent<HTMLInputElement>) => void,
-  onKeyDown:(e: React.KeyboardEvent<HTMLInputElement>) => void
-};
 
 interface FilterProps {
   genre: string,
@@ -104,5 +96,4 @@ interface LoaderProps {
   handlePagination: (i: number)=>void,
   onNext: ()=>void,
   onPrev: ()=>void,
-  details: (id: number)=>void
 }

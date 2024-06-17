@@ -1,10 +1,10 @@
 import React from 'react';
 import { useState, useEffect, useRef } from 'react';
-import ErrorHandler from '../elements/ErrorHandler';
-import Loader from '../elements/Loader';
-import Filter from '../elements/Filter';
+import ErrorHandler from '../../elements/ErrorHandler';
+import Loader from '../../elements/Loader';
+import Filter from './elements/Filter';
 
-function Shows(props: {details: (id: number)=>void}){
+function Shows(){
 
   const [showsPage, setShowsPage] = useState(0);
   const [showsToShow, setShowsToShow] = useState<Array<Show>>([]);
@@ -240,7 +240,6 @@ function setNextPage(showsPage: number){
           handlePagination={(i) => handlePagination(i)}
           onPrev={() => handlePrev()}
           onNext={() => handleNext()}
-          details={(id) => props.details(id)}
         />
       </div>
     );
